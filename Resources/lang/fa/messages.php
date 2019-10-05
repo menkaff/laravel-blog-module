@@ -13,4 +13,10 @@ return array(
     "created_at"=>"تاریخ ایجاد",
     "updated_at"=>"تاریخ آخرین ویرایش",
     "edit"=>"ویرایش",
+    "status"=>"وضعیت",
+    "title"=>"عنوان",
+    "content"=>"متن",
+    "image"=>"عکس",
+    "featured"=>"شاخص",
+    "choose"=>"انتخاب",
 );

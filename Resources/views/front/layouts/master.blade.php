@@ -1,3 +1,3 @@
-@extends('front.layout.master')
+@extends('theme::layout_canvas.master')
 
 

@@ -8,14 +8,7 @@
 
 @section('content')
 
-@foreach($errors->all() as $error)
-<div class="alert alert-warning">
-    {!!$error!!}
-    <a class="close" data-dismiss="alert" href="#">
-        ×
-    </a>
-</div>
-@endforeach
+@include('theme::layout_coreui.errorbox')
 
 <form action="/admin/blog/category/store" class="form-horizontal" method="POST">
     @csrf

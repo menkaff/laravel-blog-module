@@ -7,14 +7,7 @@
 
 {!! Form::open(['url'=>['/admin/blog/post/store'],'class'=>'form-horizontal']) !!}
 
-@foreach($errors->all() as $error)
-<div class="alert alert-warning">
-    {!!$error!!}
-    <a class="close" data-dismiss="alert" href="#">
-        ×
-    </a>
-</div>
-@endforeach
+@include('theme::layout_coreui.errorbox')
 
 <div class="form-group hide">
     <label for="" class="col-md-2 control-label">{{trans('blog::messages.status')}}</label>
@@ -35,7 +28,7 @@
 <div class="form-group">
     <label for="" class="col-md-2 control-label">{{trans('blog::messages.content')}}</label>
     <div class="col-sm-10">
-        {!! Form::textarea('content' value='{{Request::old('content')}}' />
+        <textarea name='content'>{{Request::old('content')}}</textarea>
     </div>
 </div>
 

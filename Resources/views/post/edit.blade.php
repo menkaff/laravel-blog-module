@@ -2,14 +2,7 @@
 @section('title') {{ trans('blog::messages.edit').' '.trans('blog::messages.post') }} 
 @stop 
 @section('content')
-@foreach($errors->all() as $error)
-<div class="alert alert-warning">
-    {!!$error!!}
-    <a class="close" data-dismiss="alert" href="#">
-        ×
-    </a>
-</div>
-@endforeach {!! Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
+@include('theme::layout_coreui.errorbox') {!! Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
 <input class="hide" name="id" value="{{$post->id}}" />
 <div class="form-group hide">
     <label for="" class="col-md-2 control-label">{{trans('blog::messages.status')}}</label>
