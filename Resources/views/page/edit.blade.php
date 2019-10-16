@@ -1,44 +1,35 @@
 @extends('theme::layout_coreui.master')
-@section('title') {{ trans('blog::messages.edit').' '.trans('blog::messages.post') }}
+@section('title') {{ trans('blog::messages.edit').' '.trans('blog::messages.page') }}
 @stop
 @section('content')
 @include('theme::layout_coreui.errorbox') {!!
-Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
-<input type="hidden" name="id" value="{{$post->id}}" />
+Form::open(['url'=>['/admin/blog/page/update'],'class'=>'form-horizontal']) !!}
+<input type="hidden" name="id" value="{{$page->id}}" />
 
 
 <div class="form-group hide">
   <label for="" class="col-md-2 control-label">{{trans('blog::messages.status')}}</label>
-  <div class="col-sm-4">
-    <select class="form-control" name="status">
-      <option value="1" @if($post->status==1) selected @endif>{{trans('blog::messages.publish')}}</option>
-      <option value="0" @if($post->status==0) selected @endif>{{trans('blog::messages.draft')}}</option>
+  <div class="col-sm-10">
+    <select name="status">
+      <option value="1" @if($page->status==1) selected @endif>{{trans('blog::messages.publish')}}</option>
+      <option value="0" @if($page->status==0) selected @endif>{{trans('blog::messages.draft')}}</option>
     </select>
   </div>
 </div>
 
-<div class="form-group hide">
-  <label for="" class="col-md-2 control-label">{{trans('blog::messages.is_comment')}}</label>
-  <div class="col-sm-4">
-    <select class="form-control" name="is_comment">
 
-      <option value="1" @if($post->is_comment==1) selected @endif>{{trans('blog::messages.active')}}</option>
-      <option value="-1" @if($post->is_comment==-1) selected @endif>{{trans('blog::messages.deactive')}}</option>
-    </select>
-  </div>
-</div>
 
 <div class="form-group">
   <label for="" class="col-md-2 control-label">{{trans('blog::messages.title')}}</label>
-  <div class="col-sm-4">
-    <input class="form-control" type="text" name='title' value='{{Request::old('title',$post->title)}}' />
+  <div class="col-sm-10">
+    <input class="form-control" type="text" name='title' value='{{Request::old('title',$page->title)}}' />
   </div>
 </div>
 <div class="form-group">
   <label for="" class="col-md-2 control-label">{{trans('blog::messages.content')}}</label>
   <div class="col-sm-10">
     <textarea class="my-editor" name='content'>
-            {{Request::old('content',$post->content)}}
+            {{Request::old('content',$page->content)}}
         </textarea>
   </div>
 </div>
@@ -55,10 +46,10 @@ Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
           {{trans('blog::messages.choose')}}
         </a>
       </span>
-      <input value="{!!Request::old('filepath',$post->f_image)!!}" class="form-control" id="thumbnail" name="filepath"
+      <input value="{!!Request::old('filepath',$page->f_image)!!}" class="form-control" id="thumbnail" name="filepath"
         type="text" />
     </div>
-    <img id="holder" style="margin-top:15px;max-height:100px;" src="{!!Request::old('filepath',$post->f_image)!!}" />
+    <img id="holder" style="margin-top:15px;max-height:100px;" src="{!!Request::old('filepath',$page->f_image)!!}" />
   </div>
 </div>
 
@@ -68,11 +59,7 @@ Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
 
 
 
-<div class="tree well">
-  {{ trans('blog::messages.categories') }}
-  {{\Modules\Blog\Models\Category::render($categories,'checkbox',false,false,false)}}
 
-</div>
 
 {!! Form::submit(trans('blog::messages.edit'),['class'=>'btn btn-primary text-right']) !!}
 
@@ -120,7 +107,7 @@ Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
 
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("DOMContentLoaded", function() {
   
   document.getElementById('lfm').addEventListener('click', (event) => {
     event.preventDefault();
@@ -134,7 +121,7 @@ Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
   document.getElementById('thumbnail').value = $url;
   }
     
-  </script>
+</script>
 
 
 @stop

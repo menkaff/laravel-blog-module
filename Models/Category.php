@@ -2,9 +2,9 @@
 
 namespace Modules\Blog\Models;
 
-use Kalnoy\Nestedset\NodeTrait;
 use DB;
 use Illuminate\Database\Eloquent\Model;
+use Kalnoy\Nestedset\NodeTrait;
 
 class Category extends Model
 {
@@ -12,9 +12,13 @@ class Category extends Model
 
     protected $table = 'blog_category';
 
-    protected $fillable = ['name','image'];
+    protected $fillable = ['name', 'image'];
 
-   
+    public function posts()
+    {
+        return $this->belongsToMany('Modules\Blog\Models\Post','blog_post_category','category_id','post_id');
+
+    }
 
     public function child_c()
     {
@@ -39,7 +43,7 @@ class Category extends Model
     public static function render($categories = array(), $is_checkbox = 'checkbox', $is_leaf_only = false, $is_root = true, $is_category = true, $edit_id = 0)
     {
 
-        function renderNode_Seller_Category($node, $categories, $is_checkbox = 'checkbox', $is_leaf_only = false, $edit_id = 0)
+        function renderNode_Category($node, $categories, $is_checkbox = 'checkbox', $is_leaf_only = false, $edit_id = 0)
         {
 
             echo "<li>";
@@ -53,7 +57,6 @@ class Category extends Model
                 // echo "<div class='btn btn-primary'>";
                 echo "<div class='hl'></div> <span class='tree_node_title'>  {$node->name} </span> ";
                 echo "<span class='tree_node_info'>";
-                
 
                 echo "</span>";
                 if (!$is_leaf_only) {
@@ -72,7 +75,7 @@ class Category extends Model
 
                 echo "<ul class='tree'>";
                 foreach ($node->children as $child) {
-                    renderNode_Seller_Category($child, $categories, $is_checkbox, $is_leaf_only, $edit_id);
+                    renderNode_Category($child, $categories, $is_checkbox, $is_leaf_only, $edit_id);
                 }
                 echo "</ul>";
                 // echo "</div>";
@@ -80,7 +83,6 @@ class Category extends Model
                 // echo "<div class='btn btn-danger'>";
                 echo "<div class='hl'></div> <span class='tree_node_title'>  {$node->name} </span>";
                 echo "<span class='tree_node_info'>";
-               
 
                 echo "</span>";
 
@@ -118,7 +120,7 @@ class Category extends Model
         }
 
         foreach ($roots as $root) {
-            renderNode_Seller_Category($root, $categories, $is_checkbox, $is_leaf_only, $edit_id);
+            renderNode_Category($root, $categories, $is_checkbox, $is_leaf_only, $edit_id);
         }
         echo "</ul>";
     }
@@ -156,5 +158,4 @@ class Category extends Model
         echo "</ul>";
     }
 
-    
 }
