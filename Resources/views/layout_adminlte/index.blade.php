@@ -1,4 +1,4 @@
-@extends('theme::layout_coreui.master')
+@extends('blog::layouts.master')
 @section('head')
 @stop
 @section('title') {{ $title=trans('blog::messages.blog') }}

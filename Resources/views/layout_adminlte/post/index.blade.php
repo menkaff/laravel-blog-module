@@ -1,4 +1,4 @@
-@extends('theme::layout_coreui.master') 
+@extends('blog::layouts.master') 
 @section('head')
 <link href="/adminlte/plugins/datatables/dataTables.bootstrap.css" rel="stylesheet" /> 
 @stop 

@@ -23,7 +23,7 @@ class PostController extends Controller
     {
         $posts = Post::get();
 
-        return view('blog::post.index')->with('posts', $posts);
+        return view('blog::' . env('ADMIN_THEME') . '.post.index')->with('posts', $posts);
 
     }
 
@@ -33,8 +33,8 @@ class PostController extends Controller
      */
     public function create(Request $request)
     {
-        
-        return view('blog::post.create');
+
+        return view('blog::' . env('ADMIN_THEME') . '.post.create');
     }
 
     /**
@@ -98,9 +98,9 @@ class PostController extends Controller
      */
     public function report(Request $request)
     {
-        $post=Post::find($request->input('id'));
+        $post = Post::find($request->input('id'));
 
-        return view('blog::post.report')->with('post',$post);
+        return view('blog::' . env('ADMIN_THEME') . '.post.report')->with('post', $post);
     }
 
     /**
@@ -121,7 +121,7 @@ class PostController extends Controller
             $categories_ids[] = $category->category_id;
         }
 
-        return view('blog::post.edit')->with(
+        return view('blog::' . env('ADMIN_THEME') . '.post.edit')->with(
             'post', $post)->with(
             'categories', $categories_ids);
 

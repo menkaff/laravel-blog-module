@@ -49,7 +49,7 @@ class CommentsController extends Controller {
 
 	public function Index() {
 		$comments = Comment::all();
-		return view(env('admin').'posts.comments.all', ['comments' => $comments]);
+		return view('blog::'.env('ADMIN_THEME').'.posts.comments.all', ['comments' => $comments]);
 
 	}
 

@@ -14,7 +14,7 @@ class CategoryController extends Controller
     public function Create()
     {
         $categories = Category::orderBy('name')->get();
-        return view('blog::category.create', ['categories' => $categories]);
+        return view('blog::'.env('ADMIN_THEME').'.category.create', ['categories' => $categories]);
     }
 
     public function Store(Request $request)
@@ -78,7 +78,7 @@ class CategoryController extends Controller
         $id = $request->input('id');
         $categories = Category::orderBy('name')->get();
         $category = Category::findOrFail($id);
-        return view('blog::category.edit', [
+        return view('blog::'.env('ADMIN_THEME').'.category.edit', [
             'title' => trans('blog::messages.edit') . ' ' . trans('blog::messages.category') . ' : ' . $category->name,
             'category' => $category,
             'categories' => $categories
@@ -127,7 +127,7 @@ class CategoryController extends Controller
         $id = $request->input('id');
         $category = Category::findorFail($id);
         $categories = Category::where('parent_id', $id)->get();
-        return view('blog::category.index', [
+        return view('blog::'.env('ADMIN_THEME').'.category.index', [
             'title' => trans('blog::messages.showchild') . ' ' . trans('blog::messages.category') . ' : ' . $category->name,
             'categories' => $categories
         ]);
@@ -145,7 +145,7 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::whereIsRoot()->orderBy('name')->get();
-        return view('blog::category.index', array(
+        return view('blog::'.env('ADMIN_THEME').'.category.index', array(
             'categories' => $categories,
             'title' => trans('blog::messages.levelone') . ' ' . trans('blog::messages.categories'),
         ));

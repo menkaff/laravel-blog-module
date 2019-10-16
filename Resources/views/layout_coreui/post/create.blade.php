@@ -1,25 +1,20 @@
-@extends('theme::layout_coreui.master') 
-@section('title') {{ trans('blog::messages.edit').' '.trans('blog::messages.post') }} 
-@stop 
+@extends('blog::layouts.master')
+@section('title')
+{{ $title=trans('blog::messages.blog').' '.trans('blog::messages.post_new') }}
+@stop
+
 @section('content')
-@include('theme::layout_coreui.errorbox') {!! Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
-<input class="hide" name="id" value="{{$post->id}}" />
+
+{!! Form::open(['url'=>['/admin/blog/post/store'],'class'=>'form-horizontal']) !!}
+
+@include('theme::layout_coreui.errorbox')
+
 <div class="form-group hide">
     <label for="" class="col-md-2 control-label">{{trans('blog::messages.status')}}</label>
     <div class="col-sm-10">
-        <select name="status">
-        <option value="1" @if($post->status==1) selected @endif>publish</option>
-        <option value="0" @if($post->status==0) selected @endif>hide</option>
-      </select>
-    </div>
-</div>
-<div class="form-group hide">
-    <label for="" class="col-md-2 control-label">{{trans('blog::messages.iscomment')}}</label>
-    <div class="col-sm-10">
-        <select name="is_comment">
-
-        <option value="1" @if($post->is_comment==1) selected @endif>Active Comments</option>
-        <option value="-1" @if($post->is_comment==-1) selected @endif>DeActive comments</option>
+      <select name="status">
+        <option value="1" selected>publish</option>
+        <option value="0" >hide</option>
       </select>
     </div>
 </div>
@@ -27,56 +22,47 @@
 <div class="form-group">
     <label for="" class="col-md-2 control-label">{{trans('blog::messages.title')}}</label>
     <div class="col-sm-10">
-        <input class="form-control" type="text" name='title' value='{{Request::old('title',$post->title)}}' />
+        <input class="form-control" type="text" name='title' value='{{Request::old('title')}}' />
     </div>
 </div>
 <div class="form-group">
     <label for="" class="col-md-2 control-label">{{trans('blog::messages.content')}}</label>
     <div class="col-sm-10">
-        {!! Form::textarea('content' value='{{Request::old('content',$post->content)}}' />
+        <textarea name='content'>{{Request::old('content')}}</textarea>
     </div>
 </div>
 
 <div class="form-group">
         <label for="" class="col-md-2 control-label">{{trans(trans('blog::messages.image').' '.trans('blog::messages.featured'))}}</label>
         <div class="col-sm-10">
-            <div class="input-group">
-                <span class="input-group-btn">
+    <div class="input-group">
+        <span class="input-group-btn">
             <a class="btn btn-primary" data-input="thumbnail" data-preview="holder" id="lfm">
                 <i class="fa fa-picture-o">
                 </i>
-                {{trans('blog::messages.image').' '.trans('blog::messages.featured')}}
+                {{trans('blog::messages.choose')}}
             </a>
         </span>
-                <input class="form-control" id="thumbnail" name="filepath" type="text" value="{{$post->f_image}}">
-                </input>
-            </div>
-            <img id="holder" style="margin-top:15px;max-height:100px;" src="{{$post->f_image}}" name="filepath" />
+        <input value="{!!Request::old('filepath')!!}" class="form-control" id="thumbnail" name="filepath" type="text" />
+    </div>
+    <img id="holder" style="margin-top:15px;max-height:100px;" src="{!!Request::old('filepath')!!}" /> 
         </div>
     </div>
 
- 
 
-
-
-
-
+    
 <div class="tree well">
-    {{ trans('blog::messages.categories') }} {{\Modules\Blog\Models\Category::render($categories)}}
+    {{ trans('blog::messages.categories') }}
+            {{\Modules\Blog\Models\Category::render()}}
 </div>
+    <button type="submit" class="btn btn-primary text-right" > {{trans('blog::messages.create') }} </button>
 
-{!! Form::submit(trans('blog::messages.edit'),['class'=>'btn btn-primary text-right']) !!}
-
-
-
-
-
+</form>
 <script src="/tinymce/tinymce.min.js">
-
 </script>
 <script>
     var editor_config = {
-            	 directionality : 'rtl',
+               directionality : 'rtl',
               language: 'fa_IR',
     path_absolute : "/",
     selector: "textarea.my-editor",
@@ -111,19 +97,13 @@
   };
 
   tinymce.init(editor_config);
-
 </script>
 <script src="/vendor/laravel-filemanager/js/lfm.js">
-
 </script>
 <script>
     $(function () {
    $('#lfm').filemanager('image');
    $('#lfm2').filemanager('file');
-
-   
   });
-
 </script>
-</form> 
 @stop

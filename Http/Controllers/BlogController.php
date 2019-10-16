@@ -16,7 +16,7 @@ class BlogController extends Controller
     public function index()
     {
 
-        return view('blog::index');
+        return view('blog::'.env('ADMIN_THEME').'.index');
 
     }
 
