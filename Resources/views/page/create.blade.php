@@ -1,45 +1,38 @@
-@extends('blog::layouts.master') 
-@section('title') {{ trans('blog::messages.edit').' '.trans('blog::messages.post') }} 
-@stop 
-@section('content')
-@include('theme::layout_coreui.errorbox') {!!
-Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
-<input type="hidden" name="id" value="{{$post->id}}" />
+@extends('theme::layout_coreui.master')
+@section('title')
+{{ $title=trans('blog::messages.blog').' '.trans('blog::messages.page_new') }}
+@stop
 
+@section('content')
+
+
+
+{!! Form::open(['url'=>['/admin/blog/page/store'],'class'=>'form-horizontal']) !!}
+
+@include('theme::layout_coreui.errorbox')
 
 <div class="form-group hide">
   <label for="" class="col-md-2 control-label">{{trans('blog::messages.status')}}</label>
-  <div class="col-sm-4">
-    <select class="form-control" name="status">
-      <option value="1" @if($post->status==1) selected @endif>{{trans('blog::messages.publish')}}</option>
-      <option value="0" @if($post->status==0) selected @endif>{{trans('blog::messages.draft')}}</option>
-    </select>
-  </div>
-</div>
-
-<div class="form-group hide">
-  <label for="" class="col-md-2 control-label">{{trans('blog::messages.is_comment')}}</label>
-  <div class="col-sm-4">
-    <select class="form-control" name="is_comment">
-
-      <option value="1" @if($post->is_comment==1) selected @endif>{{trans('blog::messages.active')}}</option>
-      <option value="-1" @if($post->is_comment==-1) selected @endif>{{trans('blog::messages.deactive')}}</option>
+  <div class="col-sm-10">
+    <select name="status">
+      <option value="1" selected>{{trans('blog::messages.publish')}}</option>
+      <option value="0">{{trans('blog::messages.draft')}}</option>
     </select>
   </div>
 </div>
 
 <div class="form-group">
   <label for="" class="col-md-2 control-label">{{trans('blog::messages.title')}}</label>
-  <div class="col-sm-4">
-    <input class="form-control" type="text" name='title' value='{{Request::old('title',$post->title)}}' />
+  <div class="col-sm-10">
+    <input class="form-control" type="text" name='title' value='{{Request::old('title')}}' />
   </div>
 </div>
 <div class="form-group">
   <label for="" class="col-md-2 control-label">{{trans('blog::messages.content')}}</label>
   <div class="col-sm-10">
     <textarea class="my-editor" name='content'>
-            {{Request::old('content',$post->content)}}
-        </textarea>
+          {{Request::old('content')}}
+    </textarea>
   </div>
 </div>
 
@@ -55,26 +48,16 @@ Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
           {{trans('blog::messages.choose')}}
         </a>
       </span>
-      <input value="{!!Request::old('filepath',$post->f_image)!!}" class="form-control" id="thumbnail" name="filepath"
-        type="text" />
+      <input value="{!!Request::old('filepath')!!}" class="form-control" id="thumbnail" name="filepath" type="text" />
     </div>
-    <img id="holder" style="margin-top:15px;max-height:100px;" src="{!!Request::old('filepath',$post->f_image)!!}" />
+    <img id="holder" style="margin-top:15px;max-height:100px;" src="{!!Request::old('filepath')!!}" />
   </div>
 </div>
 
 
 
 
-
-
-
-<div class="tree well">
-  {{ trans('blog::messages.categories') }}
-  {{\Modules\Blog\Models\Category::render($categories,'checkbox',false,false,false)}}
-
-</div>
-
-{!! Form::submit(trans('blog::messages.edit'),['class'=>'btn btn-primary text-right']) !!}
+<button type="submit" class="btn btn-primary text-right"> {{trans('blog::messages.create') }} </button>
 
 </form>
 
@@ -118,23 +101,22 @@ Form::open(['url'=>['/admin/blog/post/update'],'class'=>'form-horizontal']) !!}
 
 </script>
 
-
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("DOMContentLoaded", function() {
+
+document.getElementById('lfm').addEventListener('click', (event) => {
+  event.preventDefault();
+
+  window.open('/file-manager/fm-button', 'fm', 'width=1400,height=800');
+});
+});
+
+// set file link
+function fmSetLink($url) {
+document.getElementById('thumbnail').value = $url;
+}
   
-  document.getElementById('lfm').addEventListener('click', (event) => {
-    event.preventDefault();
-  
-    window.open('/file-manager/fm-button', 'fm', 'width=1400,height=800');
-  });
-  });
-  
-  // set file link
-  function fmSetLink($url) {
-  document.getElementById('thumbnail').value = $url;
-  }
-    
-  </script>
+</script>
 
 
 @stop

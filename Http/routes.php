@@ -1,12 +1,12 @@
 <?php
 
-Route::group(['middleware' => ['web', 'auth']], function () {
+Route::group(['middleware' => ['web', 'auth' , 'permission_check']], function () {
 
     Route::get('/', 'Modules\Blog\Http\Controllers\BlogController@index_front');
 
 });
 
-Route::group(['middleware' => ['web', 'auth'], 'prefix' => 'admin/blog', 'namespace' => 'Modules\Blog\Http\Controllers'], function () {
+Route::group(['middleware' => ['web', 'auth' , 'permission_check'], 'prefix' => 'admin/blog', 'namespace' => 'Modules\Blog\Http\Controllers'], function () {
     Route::get('/', 'BlogController@index');
     Route::group(['prefix' => 'post'], function () {
 
@@ -18,7 +18,18 @@ Route::group(['middleware' => ['web', 'auth'], 'prefix' => 'admin/blog', 'namesp
         Route::post('/store', 'PostController@store');
         Route::post('/update', 'PostController@update');
 
-        Route::get('/report', 'PostController@report');
+    });
+
+    Route::group(['prefix' => 'page'], function () {
+
+        Route::get('/', 'PageController@index');
+        Route::get('/create', 'PageController@create');
+        Route::get('/edit', 'PageController@edit');
+        Route::any('/destroy', 'PageController@destroy');
+
+        Route::post('/store', 'PageController@store');
+        Route::post('/update', 'PageController@update');
+
     });
 
     Route::group(['prefix' => 'category'], function () {
@@ -33,6 +44,14 @@ Route::group(['middleware' => ['web', 'auth'], 'prefix' => 'admin/blog', 'namesp
         Route::post('/update', 'CategoryController@update');
     });
 
+    Route::group(['prefix' => 'comment'], function () {
+
+        Route::get('/', 'CommentController@index');
+        Route::any('/confirm', 'CommentController@confirm');
+        Route::any('/destroy', 'CommentController@destroy');
+
+    });
+
 });
 
 /********************* Front Functions ****************************/
@@ -40,8 +59,20 @@ Route::group(['middleware' => ['web', 'auth'], 'prefix' => 'admin/blog', 'namesp
 Route::group(['middleware' => ['web'], 'prefix' => 'blog', 'namespace' => 'Modules\Blog\Http\Controllers'], function () {
 
     Route::get('/', 'BlogController@index_front');
-    Route::get('/posts', 'PostController@index_front');
-    Route::get('/posts/show', 'PostController@show_front');
+    Route::get('/post', 'PostController@index_front');
+    Route::get('/post/show', 'PostController@show_front');
+    Route::get('/post/search', 'PostController@search_front');
+
+    Route::get('/page/show', 'PageController@show_front');
+
+    Route::get('/category', 'CategoryController@index_front');
+    Route::get('/category/show', 'CategoryController@show_front');
+
+});
+
+Route::group(['middleware' => ['web'], 'prefix' => 'blog', 'namespace' => 'Modules\Blog\Http\Controllers'], function () {
+
+    Route::post('/comment/store', 'CommentController@store_front');
 
 });
 

@@ -60,24 +60,11 @@ class PostController extends Controller
         $post->status = $request->input('status');
         $post->title = $request->input('title');
         $post->url = str_replace(' ', '-', $request->input('title'));
-        $post->f_image = $request->input('filepath');
+        $post->f_image = parse_url($request->input('filepath'), PHP_URL_PATH);
         $post->user_id = Auth::user()->id;
-        $images = $request->input('multi_image');
         $post->content = $request->input('content');
         $post->excerpt = str_limit(strip_tags($request->input('content'), 50));
-
-        if ($images != '') {
-            $images = explode(',', $images);
-            $i = 0;
-            foreach ($images as $image) {
-                if ($i != 0) {
-                    $post->content .= "<img src='/$image' >";
-                } else {
-                    $post->content .= "<img src='$image' >";
-                }
-                $i++;
-            }
-        }
+        $post->is_comment = $request->is_comment;
 
         $post->save();
 
@@ -111,9 +98,6 @@ class PostController extends Controller
     {
         $id = $request->input('id');
         $post = post::find($id);
-        if ($post->post_id != 0) {
-            return Redirect::back()->withErrors(trans('blog::messages.error'));
-        }
 
         $categories = DB::table('blog_post_category')->select('category_id')->where('post_id', $id)->get();
         $categories_ids = array();
@@ -135,7 +119,6 @@ class PostController extends Controller
     public function update(Request $request)
     {
         $id = $request->input('id');
-        $images = $request->input('multi_image');
 
         $data = [
             'title' => $request->input('title'),
@@ -149,31 +132,15 @@ class PostController extends Controller
         }
 
         $post = Post::find($id);
-        if ($post->post_id != 0) {
-            return Redirect::back()->withErrors(trans('blog::messages.error'));
-        }
 
         $post->status = $request->input('status');
         $post->title = $request->input('title');
         $post->url = str_replace(' ', '-', $request->input('title'));
-        $post->f_image = $request->input('filepath');
+        $post->f_image = parse_url($request->input('filepath'), PHP_URL_PATH);
         $post->content = $request->input('content');
         $post->excerpt = str_limit(strip_tags($post->content, 50));
-        if ($request->input('is_comment') == -1) {
-            $post->is_comment = -1;
-        }
-        if ($images != '') {
-            $images = explode(',', $images);
-            $i = 0;
-            foreach ($images as $image) {
-                if ($i != 0) {
-                    $post->content .= "<img src='/$image' >";
-                } else {
-                    $post->content .= "<img src='$image' >";
-                }
-                $i++;
-            }
-        }
+        $post->is_comment = $request->is_comment;
+
         $post->save();
 
         $categories = $request->input('categories');
@@ -222,20 +189,43 @@ class PostController extends Controller
     /********************* Front Functions ****************************/
     public function index_front(Request $request)
     {
+
         if ($request->has('category_id')) {
-            $posts = DB::table('blog_post')->join('blog_post_category', 'blog_post.id', '=', 'blog_post_category.post_id')->where('blog_post_category.category_id', $request->input('category_id'))->get();
+            $posts = DB::table('blog_post')
+                ->where('status', 1)
+                ->join('blog_post_category', 'blog_post.id', '=', 'blog_post_category.post_id')
+                ->where('blog_post_category.category_id', $request->input('category_id'))
+                ->get();
         } else {
-            $posts = Post::all();
+            $posts = Post::where('status', 1)->get();
         }
 
-        return view('blog::front.post.index')->with(['posts' => $posts]);
+        return view('theme::blog.post.index')->with(['posts' => $posts]);
     }
 
     public function show_front(Request $request)
     {
-        $post = Post::find($request->id);
+        $request->validate([
+            'id' => 'required|exists:blog_post|numeric',
+        ]);
 
-        return view('blog::front.post.show')->with(['post' => $post]);
+        $post = Post::where(['id' => $request->id, 'status' => 1])->first();
+
+        return view('theme::blog.post.show')->with(['post' => $post]);
+    }
+
+    public function search_front(Request $request)
+    {
+        $request->validate([
+            'word' => 'required|max:255',
+        ]);
+
+        $posts = Post::where('title', '%' . $request->word . '%')
+            ->where('content', '%' . $request->word . '%')
+            ->get();
+
+        return view('theme::blog.post.index')->with(['posts' => $posts]);
+
     }
 
     /********************* API Functions ****************************/
@@ -268,12 +258,10 @@ class PostController extends Controller
     {
 
         $comment = new Comment;
-        $comment->content = $request->input()['params']['content'];
-        $comment->user_id = $request->input()['params']['user_id'];
-        $comment->post_id = $request->input()['params']['post_id'];
-        $comment->user_name = $comment->user->name;
+        $comment->content = $request->content;
+        $comment->user_id = Auth::id();
+        $comment->post_id = $request->post_id;
         $comment->save();
-        //return 1;
         return $comment;
 
     }

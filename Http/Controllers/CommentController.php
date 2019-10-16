@@ -1,56 +1,56 @@
 <?php
-namespace App\Http\Controllers\Admin\Post;
-use DB, Redirect, Input, Auth;
-use App\Http\Controllers\Controller;
-use App\Models\Post\Post, App\Models\Post\Comment;
+namespace Modules\Blog\Http\Controllers;
 
-class CommentsController extends Controller {
+use Auth;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Modules\Blog\Models\Comment;
+use Redirect;
 
-	public function __construct() {
-		$this -> middleware('auth');
-		$this -> middleware('role:admin');
-	}
+class CommentController extends Controller
+{
 
-	
+    public function Delete(Request $request)
+    {
+        if ($request->filled('id')) {
+            $id = $request->get('id');
+            $delete = Comment::where('id', $id)->delete();
+            return Redirect::back()->withErrors(trans('blog::messages.done'));
+        } elseif ($request->filled('bulk')) {
+            $ids = $request->get('bulk');
+            $delete = Comment::whereIn('id', $ids)->delete();
+            return Redirect::back()->withErrors(trans('blog::messages.done'));
+        }
 
-	public function Edit() {
-		$id = Input::get('id');
-		$comment = Comment::find($id);
-		$posts = post::all();
-		return view(env('admin').'posts.comments.edit', [
-		'comment' => $comment,
-		'posts' => $posts]);
-	}
+    }
 
-	public function Update() {
-		$id = Input::get('id');
-		$comment = Comment::find($id);
+    public function Index()
+    {
+        $comments = Comment::all();
+        return view('blog::comment.index', ['comments' => $comments]);
 
-		if (Input::get('choice') == 'post')
-			$comment -> post_id = Input::get('post_id');
+    }
 
-		$comment -> content = Input::get('content');
-		$comment -> save();
-		return Redirect::back() -> withErrors(trans('blog::messages.done'));
-	}
+    public function Confirm(Request $request)
+    {
+        $comment = Comment::find($request->id);
+        $comment->is_confirm = $request->is_confirm;
+        $comment->save();
 
-	public function Delete() {
-		if (Input::has('id')) {
-			$id = Input::get('id');
-			$delete = Comment::where('id', $id) -> delete();
-			return Redirect::back() -> withErrors(trans('blog::messages.done'));
-		} elseif (Input::has('bulk')) {
-			$ids = Input::get('bulk');
-			$delete = Comment::whereIn('id', $ids) -> delete();
-			return Redirect::back() -> withErrors(trans('blog::messages.done'));
-		}
+        return Redirect::back()->withErrors(trans('blog::messages.done'));
+    }
 
-	}
+    /********************* Front Functions ****************************/
+    public function store_front(Request $request)
+    {
 
-	public function Index() {
-		$comments = Comment::all();
-		return view('blog::'.env('ADMIN_THEME').'.posts.comments.all', ['comments' => $comments]);
+        $comment = new Comment;
+        $comment->content = $request->content;
+        $comment->user_id = Auth::id();
+        $comment->post_id = $request->post_id;
+        $comment->save();
+        return Redirect::back()->withErrors(trans('blog::messages.done'));
 
-	}
+    }
 
 }

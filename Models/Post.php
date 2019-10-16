@@ -20,6 +20,12 @@ class Post extends Model
 
     }
 
+    public function categories()
+    {
+        return $this->belongsToMany('Modules\Blog\Models\Category', 'blog_post_category', 'post_id', 'category_id');
+
+    }
+
     public function comments()
     {
         return $this->hasMany('Modules\Blog\Models\Comment');

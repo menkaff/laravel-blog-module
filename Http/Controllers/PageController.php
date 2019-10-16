@@ -1,150 +1,178 @@
 <?php
-namespace App\Http\Controllers\Admin\Post;
-use DB, Redirect, Input, Auth,Mail;
-use App\Http\Controllers\Controller;
-use App\Models\Post\Page,App\Models\User;
+namespace Modules\Blog\Http\Controllers;
 
-class PagesController extends Controller {
 
-	public function __construct() {
-		$this -> middleware('auth');
-		$this -> middleware('role:admin');
-	}
+use Auth;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Controller;
+use Modules\Auth\Models\User;
+use Modules\Blog\Models\Page;
+use Redirect;
+use Validator;
 
-	public function Create() {
-		return view(env('admin').'posts.pages.create');
 
-	}
-	
-	public function nl_create() {
-		return view(env('admin').'posts.newsletter');
+class PageController extends Controller
+{
+/**
+ * Display a listing of the resource.
+ * @return Response
+ */
+    public function index()
+    {
+        $pages = Page::get();
 
-	}
-	
-	public function nl_store(){
-	$data=array();
-	$data['title']=Input::get('title');
-	$data['content']=Input::get('content');
-	$data['f_image']=Input::get('f_image');
+        return view('blog::page.index')->with('pages', $pages);
 
-	$users=User::select(['email'])->get();
-	
-	foreach($users as $user){
-		$email=$user->email;
-	Mail::send('emails.newsletter', $data, function ($message)use($email) {
-    $message->from('newsletter@kermanbalan.com', 'کرمان بالان');
+    }
 
-    $message->to($email)->subject('خبرنامه');
-     });
-	}
-	
-	$nl_users=DB::table('newsletter_users')->all();
-	if(count($nl_users)>0){
-	foreach($nl_users as $nl_user){
-		$email=$nl_user->email;
-	Mail::send('emails.newsletter', $data, function ($message)use($email) {
-    $message->from('newsletter@kermanbalan.com', 'کرمان بالان');
+    /**
+     * Show the form for creating a new resource.
+     * @return Response
+     */
+    public function create(Request $request)
+    {
 
-    $message->to($email)->subject('خبرنامه');
-     });
-	}
-	}
-	 
-	 return Redirect::back() -> withErrors(trans('blog::messages.done'));
-	}
-	
+        return view('blog::page.create');
+    }
 
-	public function Store() {
-		$page = new page();
+    /**
+     * Store a newly created resource in storage.
+     * @param  Request $request
+     * @return Response
+     */
+    public function store(Request $request)
+    {
+        $page = new Page;
 
-		$page -> title = Input::get('title');
-		$page -> user_id = Auth::user() -> id;
-		$page -> content = Input::get('content');
-		$page -> f_image = Input::get('f_image');
-		$page -> save();
+        $data = [
+            'title' => $request->input('title'),
+            'content' => $request->input('content')];
 
-		if (Input::has('tags')) {
-			//$tags = explode(',', Input::get('tags'));
-			//$page -> tag($tags);
-		}
+        $rules = ['title' => 'required', 'content' => 'required'];
 
-		return Redirect::back() -> withErrors(trans('blog::messages.done'));
+        $valid = Validator::make($data, $rules);
+        if ($valid->fails()) {
+            return Redirect::back()->withErrors($valid)->withInput();
+        }
 
-	}
+        $page->status = $request->input('status');
+        $page->title = $request->input('title');
+        $page->url = str_replace(' ', '-', $request->input('title'));
+        $page->f_image = parse_url($request->input('filepath'), PHP_URL_PATH);
+        $page->user_id = Auth::user()->id;
+        $page->content = $request->input('content');
+        $page->excerpt = str_limit(strip_tags($request->input('content'), 50));
 
-	public function Edit() {
-		$id = Input::get('id');
-		$page = page::find($id);
-		if ($page -> page_id != 0)
-			return Redirect::back() -> withErrors(trans('blog::messages.error'));
+        $page->save();
 
-		if ($page -> f_image != null) {
-			$f_image = $page -> f_image;
-			$f_image = str_replace('/filemanager/', '/thumbs/', $page -> f_image);
-			$path_parts = pathinfo($f_image);
-			$f_image = $path_parts['dirname'] . '/' . $path_parts['filename'] . '-small.' . $path_parts['extension'];
+        return Redirect::back()->withErrors(trans('blog::messages.done'));
+    }
 
-		} else {
-			$f_image = '';
-		}
+    /**
+     * Show the specified resource.
+     * @return Response
+     */
+    public function report(Request $request)
+    {
+        $page = Page::find($request->input('id'));
 
-		//$tags = $page -> tagNames();
-		//$tags = implode(',', $tags);
-		$f_image = strtolower($f_image);
-		return view(env('admin').'posts.pages.edit', [
-		'f_image' => $f_image,
-		'page' => $page]);
+        return view('blog::page.report')->with('page', $page);
+    }
 
-	}
+    /**
+     * Show the form for editing the specified resource.
+     * @return Response
+     */
+    public function edit(Request $request)
+    {
+        $id = $request->input('id');
+        $page = page::find($id);
 
-	public function Update() {
-		$id = Input::get('id');
-		$title = Input::get('title');
+        return view('blog::page.edit')->with(
+            'page', $page);
 
-		$page = page::find($id);
-		if ($page -> page_id != 0)
-			return Redirect::back() -> withErrors(trans('blog::messages.error'));
+    }
 
-		$page -> title = $title;
-		$page -> content = Input::get('content');
-		$page -> f_image = Input::get('f_image');
-		$page -> save();
+    /**
+     * Update the specified resource in storage.
+     * @param  Request $request
+     * @return Response
+     */
+    public function update(Request $request)
+    {
+        $id = $request->input('id');
 
-		if (Input::has('tags')) {
-			//$tags = explode(',', Input::get('tags'));
-			//$page -> tag($tags);
-		}
+        $data = [
+            'title' => $request->input('title'),
+            'content' => $request->input('content')];
 
-		return Redirect::back() -> withErrors(trans('blog::messages.done'));
-	}
+        $rules = ['title' => 'required', 'content' => 'required'];
 
-	public function Delete() {
+        $valid = Validator::make($data, $rules);
+        if ($valid->fails()) {
+            return Redirect::back()->withErrors($valid)->withInput();
+        }
 
-		if (Input::has('id')) {
-			$id = Input::get('id');
-			$delete = page::where('id', $id) -> delete();
-			return Redirect::back() -> withErrors(trans('blog::messages.done'));
-		} elseif (Input::has('bulk')) {
-			$ids = Input::get('bulk');
-			\DB::table('pages') -> whereIn('id', $ids) -> delete();
-			return Redirect::back() -> withErrors(trans('blog::messages.done'));
-			return $ids;
-		}
+        $page = Page::find($id);
 
-	}
+        $page->status = $request->input('status');
+        $page->title = $request->input('title');
+        $page->url = str_replace(' ', '-', $request->input('title'));
+        $page->f_image = parse_url($request->input('filepath'), PHP_URL_PATH);
 
-	public function Index() {
+        $page->content = $request->input('content');
+        $page->excerpt = str_limit(strip_tags($page->content, 50));
+        if ($request->input('is_comment') == -1) {
+            $page->is_comment = -1;
+        }
 
-		if (Input::has('location_id')) {
-			$location_id = Input::get('location_id');
-			$location = location::findorFail($location_id);
-			$ids = DB::table('page_location') -> select('page_id') -> where('location_id', $location_id);
-			$pages = page::whereIn('id', $ids) -> get();
-			return view(env('admin').'posts.pages.all', ['pages' => $pages]);
-		}
-		$pages = page::all();
-		return view(env('admin').'posts.pages.all', ['pages' => $pages]);
+        $page->save();
 
-	}
+        return Redirect::back()->withErrors(trans('blog::messages.done'));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     * @return Response
+     */
+    public function destroy(Request $request)
+    {
+        if ($request->has('ids')) {
+            $ids = $request->input('ids');
+        } else {
+            $ids = array($request->input('id'));
+        }
+
+        foreach ($ids as $id) {
+
+            $delete = page::where('id', $id)->delete();
+
+        }
+        if (!$request->ajax()) {
+            return Redirect::back()->withErrors(trans('blog::messages.done'));
+        }
+
+    }
+
+    /********************* Front Functions ****************************/
+
+    public function show_front(Request $request)
+    {
+        $page = Page::where(['id' => $request->id, 'status' => 1])->first();
+
+        return view('theme::blog.page.show')->with(['page' => $page]);
+    }
+
+    /********************* API Functions ****************************/
+
+    public function show_api(Request $request)
+    {
+
+        $page = Page::find($request->input('id'));
+
+        return $page;
+
+    }
 
 }

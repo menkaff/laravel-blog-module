@@ -5,6 +5,7 @@ namespace Modules\Blog\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Blog\Models\Category;
+use Modules\Blog\Models\Post;
 use Redirect;
 use Validator;
 
@@ -54,8 +55,6 @@ class CategoryController extends Controller
         //     return Redirect::back()->withErrors($valid)->withInput();
         // }
 
-
-
         // $category = Category::create([
         //     'name' => $data['name'],
         //     'image' => $data['image']
@@ -81,7 +80,7 @@ class CategoryController extends Controller
         return view('blog::'.env('ADMIN_THEME').'.category.edit', [
             'title' => trans('blog::messages.edit') . ' ' . trans('blog::messages.category') . ' : ' . $category->name,
             'category' => $category,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -91,7 +90,7 @@ class CategoryController extends Controller
         $data = [
             'name' => $request->input('name'),
             'categories' => $request->input('categories'),
-            'image' => $request->input('f_image')
+            'image' => $request->input('f_image'),
         ];
         $rules = ['name' => 'required'];
 
@@ -109,13 +108,10 @@ class CategoryController extends Controller
         $category->name = $data['name'];
         $category->image = $data['image'];
         $category->save();
-        if ($choice == 'child') {
-
-            $parent = Category::where('id', '=', $data['categories'])->first();
-            $category->makeChildOf($parent);
+        if ($request->category == "root") {
+            $category->makeRoot();
         } else {
-            //$category->makeRoot();
-            $category->parent_id = null;
+            $category->parent_id = $request->category;
             $category->save();
         }
 
@@ -129,7 +125,7 @@ class CategoryController extends Controller
         $categories = Category::where('parent_id', $id)->get();
         return view('blog::'.env('ADMIN_THEME').'.category.index', [
             'title' => trans('blog::messages.showchild') . ' ' . trans('blog::messages.category') . ' : ' . $category->name,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -150,4 +146,34 @@ class CategoryController extends Controller
             'title' => trans('blog::messages.levelone') . ' ' . trans('blog::messages.categories'),
         ));
     }
+
+    /********************* Front Functions ****************************/
+    public function index_front()
+    {
+        $categories = Category::whereIsRoot()->orderBy('name')->get();
+
+        return view('theme::blog.category.index', array(
+            'categories' => $categories,
+            'title' => trans('blog::messages.levelone') . ' ' . trans('blog::messages.categories'),
+        ));
+    }
+
+    public function show_front(Request $request)
+    {
+        $id = $request->input('id');
+        $category = Category::findorFail($id);
+        $categories = Category::where('parent_id', $id)->get();
+
+        $posts = Post::join('blog_post_category', 'post_id', 'id')
+            ->where('blog_post_category.category_id', $id)
+            ->where(['status' => 1])
+            ->get();
+
+        return view('theme::blog.post.index')->with([
+            'title' => trans('blog::messages.showchild') . ' ' . trans('blog::messages.category') . ' : ' . $category->name,
+            'categories' => $categories,
+            'posts' => $posts]);
+
+    }
+
 }
