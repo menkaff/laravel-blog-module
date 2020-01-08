@@ -1,12 +1,6 @@
 <?php
 
-Route::group(['middleware' => ['web', 'auth' , 'permission_check']], function () {
-
-    Route::get('/', 'Modules\Blog\Http\Controllers\BlogController@index_front');
-
-});
-
-Route::group(['middleware' => ['web', 'auth' , 'permission_check'], 'prefix' => 'admin/blog', 'namespace' => 'Modules\Blog\Http\Controllers'], function () {
+Route::group(['middleware' => ['web', 'auth', 'permission_check'], 'prefix' => 'admin/blog', 'namespace' => 'Modules\Blog\Http\Controllers'], function () {
     Route::get('/', 'BlogController@index');
     Route::group(['prefix' => 'post'], function () {
 
