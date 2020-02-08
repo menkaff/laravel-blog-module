@@ -1,6 +1,5 @@
 <?php
-namespace Modules\Blog\Http\Controllers;
-
+namespace Modules\Blog\Http\Controllers\API\Admin;
 
 use Auth;
 use Illuminate\Http\Request;
@@ -11,13 +10,9 @@ use Modules\Blog\Models\Page;
 use Redirect;
 use Validator;
 
-
 class PageController extends Controller
 {
-/**
- * Display a listing of the resource.
- * @return Response
- */
+
     public function index()
     {
         $pages = Page::get();
@@ -136,7 +131,7 @@ class PageController extends Controller
      * Remove the specified resource from storage.
      * @return Response
      */
-    public function destroy(Request $request)
+    public function delete(Request $request)
     {
         if ($request->has('ids')) {
             $ids = $request->input('ids');
@@ -152,26 +147,6 @@ class PageController extends Controller
         if (!$request->ajax()) {
             return Redirect::back()->withErrors(trans('blog::messages.done'));
         }
-
-    }
-
-    /********************* Front Functions ****************************/
-
-    public function show_front(Request $request)
-    {
-        $page = Page::where(['id' => $request->id, 'status' => 1])->first();
-
-        return view('theme::blog.page.show')->with(['page' => $page]);
-    }
-
-    /********************* API Functions ****************************/
-
-    public function show_api(Request $request)
-    {
-
-        $page = Page::find($request->input('id'));
-
-        return $page;
 
     }
 

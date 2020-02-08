@@ -11,7 +11,7 @@
     {{ trans('blog::messages.empty') }}
 </h3>
 @else
-<button class="btn btn-danger fa fa-trash" data-toggle="confirmation" id="destroy_ids">
+<button class="btn btn-danger fa fa-trash" data-toggle="confirmation" id="delete_ids">
 </button>
 <table class="table table-hover tablesorter table-striped table-borderd dbt text-center" id="myTable">
     <thead>
@@ -57,7 +57,7 @@
                 @endif
 
                 <a class="btn btn-danger fa fa-trash" data-toggle="confirmation"
-                    href="/admin/blog/comment/destroy?id={{$comment->id}}">
+                    href="/admin/blog/comment/delete?id={{$comment->id}}">
                 </a>
 
             <td>

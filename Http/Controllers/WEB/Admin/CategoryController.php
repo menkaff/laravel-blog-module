@@ -1,11 +1,10 @@
 <?php
 
-namespace Modules\Blog\Http\Controllers;
+namespace Modules\Blog\Http\Controllers\WEB\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Blog\Models\Category;
-use Modules\Blog\Models\Post;
 use Redirect;
 use Validator;
 
@@ -15,7 +14,7 @@ class CategoryController extends Controller
     public function Create()
     {
         $categories = Category::orderBy('name')->get();
-        return view('blog::'.env('ADMIN_THEME').'.category.create', ['categories' => $categories]);
+        return view('blog::' . env('ADMIN_THEME') . '.category.create', ['categories' => $categories]);
     }
 
     public function Store(Request $request)
@@ -77,7 +76,7 @@ class CategoryController extends Controller
         $id = $request->input('id');
         $categories = Category::orderBy('name')->get();
         $category = Category::findOrFail($id);
-        return view('blog::'.env('ADMIN_THEME').'.category.edit', [
+        return view('blog::' . env('ADMIN_THEME') . '.category.edit', [
             'title' => trans('blog::messages.edit') . ' ' . trans('blog::messages.category') . ' : ' . $category->name,
             'category' => $category,
             'categories' => $categories,
@@ -123,13 +122,13 @@ class CategoryController extends Controller
         $id = $request->input('id');
         $category = Category::findorFail($id);
         $categories = Category::where('parent_id', $id)->get();
-        return view('blog::'.env('ADMIN_THEME').'.category.index', [
+        return view('blog::' . env('ADMIN_THEME') . '.category.index', [
             'title' => trans('blog::messages.showchild') . ' ' . trans('blog::messages.category') . ' : ' . $category->name,
             'categories' => $categories,
         ]);
     }
 
-    public function Destroy(Request $request)
+    public function delete(Request $request)
     {
 
         $id = $request->input('id');
@@ -141,39 +140,10 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::whereIsRoot()->orderBy('name')->get();
-        return view('blog::'.env('ADMIN_THEME').'.category.index', array(
+        return view('blog::' . env('ADMIN_THEME') . '.category.index', array(
             'categories' => $categories,
             'title' => trans('blog::messages.levelone') . ' ' . trans('blog::messages.categories'),
         ));
-    }
-
-    /********************* Front Functions ****************************/
-    public function index_front()
-    {
-        $categories = Category::whereIsRoot()->orderBy('name')->get();
-
-        return view('theme::blog.category.index', array(
-            'categories' => $categories,
-            'title' => trans('blog::messages.levelone') . ' ' . trans('blog::messages.categories'),
-        ));
-    }
-
-    public function show_front(Request $request)
-    {
-        $id = $request->input('id');
-        $category = Category::findorFail($id);
-        $categories = Category::where('parent_id', $id)->get();
-
-        $posts = Post::join('blog_post_category', 'post_id', 'id')
-            ->where('blog_post_category.category_id', $id)
-            ->where(['status' => 1])
-            ->get();
-
-        return view('theme::blog.post.index')->with([
-            'title' => trans('blog::messages.showchild') . ' ' . trans('blog::messages.category') . ' : ' . $category->name,
-            'categories' => $categories,
-            'posts' => $posts]);
-
     }
 
 }

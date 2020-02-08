@@ -30,4 +30,24 @@ class Post extends Model
     {
         return $this->hasMany('Modules\Blog\Models\Comment');
     }
+
+    public function getImageAttribute($image)
+    {
+        return $image = make_absolute($image, env('APP_URL'));
+    }
+
+    public function getVideoAttribute($video)
+    {
+        return $video = make_absolute($video, env('APP_URL'));
+    }
+
+    public function getCreatedAtAttribute($date)
+    {
+        return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->timestamp;
+    }
+
+    public function getUpdatedAtAttribute($date)
+    {
+        return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->timestamp;
+    }
 }

@@ -1,7 +1,6 @@
 <?php
-namespace Modules\Blog\Http\Controllers;
+namespace Modules\Blog\Http\Controllers\WEB\Admin;
 
-use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Blog\Models\Comment;
@@ -38,19 +37,6 @@ class CommentController extends Controller
         $comment->save();
 
         return Redirect::back()->withErrors(trans('blog::messages.done'));
-    }
-
-    /********************* Front Functions ****************************/
-    public function store_front(Request $request)
-    {
-
-        $comment = new Comment;
-        $comment->content = $request->content;
-        $comment->user_id = Auth::id();
-        $comment->post_id = $request->post_id;
-        $comment->save();
-        return Redirect::back()->withErrors(trans('blog::messages.done'));
-
     }
 
 }

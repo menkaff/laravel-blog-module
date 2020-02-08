@@ -48,7 +48,7 @@
                 </a>
 
                 <a class="btn btn-danger fa fa-trash" data-toggle="confirmation"
-                    href="/admin/blog/category/destroy?id={{$category->id}}">
+                    href="/admin/blog/category/delete?id={{$category->id}}">
                 </a>
             </td>
             <td>
