@@ -1,6 +1,7 @@
 <?php
 namespace Modules\Blog\Services;
 
+use App\Rules\PersianYear;
 use Carbon\Carbon;
 use DB;
 use File;
@@ -18,31 +19,59 @@ class PostService
 
     public function index($params)
     {
-        // return serviceOk(Post::all());
-        $posts = Post::
-            when(isset($params['from_date']), function ($q) use ($params) {
-            $from_date = explode('/', $params['from_date']);
-            $from_date_g = \Morilog\Jalali\CalendarUtils::toGregorian($from_date[0], $from_date[1], $from_date[2]);
-            $from_date_g = Carbon::createFromDate($from_date_g[0], $from_date_g[1], $from_date_g[2]);
+        $validator = Validator::make($params, [
+            'from_date' => ['nullable', new PersianYear],
+            'to_date' => ['nullable', new PersianYear],
+            'page' => 'nullable|numeric',
+            'per_page' => 'nullable|numeric',
+        ]);
 
-            return $q->where('created_at', '>=', $from_date_g);
+        if ($validator->fails()) {
+            return serviceError($validator->errors());
+        }
+
+        $posts = Post::
+            when(isset($params['word']), function ($query) use ($params) {
+            $query->where('title', 'LIKE', '%' . $params['word'] . '%');
+            $query->orwhere('content', 'LIKE', '%' . $params['word'] . '%');
         })
+            ->when(isset($params['from_date']), function ($q) use ($params) {
+                $from_date = explode('/', $params['from_date']);
+                $from_date_g = \Morilog\Jalali\CalendarUtils::toGregorian($from_date[0], $from_date[1], $from_date[2]);
+                $from_date_g = Carbon::createFromDate($from_date_g[0], $from_date_g[1], $from_date_g[2], 'Asia/Tehran')->format('Y-m-d');
+
+                return $q->where('blog_post.created_at', '>=', $from_date_g);
+            })
             ->when(isset($params['to_date']), function ($q) use ($params) {
                 $to_date = explode('/', $params['to_date']);
                 $to_date_g = \Morilog\Jalali\CalendarUtils::toGregorian($to_date[0], $to_date[1], $to_date[2]);
-                $to_date_g = Carbon::createFromDate($to_date_g[0], $to_date_g[1], $to_date_g[2]);
+                $to_date_g = Carbon::createFromDate($to_date_g[0], $to_date_g[1], $to_date_g[2], 'Asia/Tehran')->format('Y-m-d');
 
-                return $q->where('created_at', '<=', $to_date_g);
+                return $q->where('blog_post.created_at', '<=', $to_date_g);
             })
             ->when(isset($params['user_id']), function ($query) use ($params) {
-                $query->where('user_id', $params['user_id']);
+                // $query->where('blog_post.user_id', $params['user_id']);
+                if (is_array($params['user_id'])) {
+                    $query->whereIn('blog_post.user_id', $params['user_id']);
+                } else {
+                    $query->where('blog_post.user_id', '=', $params['user_id']);
+                }
             })
             ->when(isset($params['user_table']), function ($query) use ($params) {
-                $query->where('user_table', $params['user_table']);
+                $query->where('blog_post.user_table', $params['user_table']);
+            })
+            ->when(isset($params['user_table']) && isset($params['include_user']), function ($query) use ($params) {
+                $query->join($params['user_table'], $params['user_table'] . '.id', 'blog_post.user_id');
+                $query->where('blog_post.user_table', $params['user_table']);
+
+                $query->addSelect([
+                    $params['user_table'] . '.id as user.id',
+                    $params['user_table'] . '.name as user.name',
+                ]);
             })
             ->when(isset($params['category_ids']), function ($query) use ($params) {
 
-                $query->join('blog_post_category', 'blog_post_category.post_id' , 'blog_post.id');
+                $query->join('blog_post_category', 'blog_post_category.post_id', 'blog_post.id');
                 $query->whereIn('blog_post_category.category_id', $params['category_ids']);
 
                 return $query;
@@ -88,15 +117,20 @@ class PostService
         if ($valid->fails()) {
             return Redirect::back()->withErrors($valid)->withInput();
         }
+        if (isset($params['status'])) {
+            $post->status = $params['status'];
+        }
 
-        $post->status = $params['status'];
         $post->title = $params['title'];
         $post->url = str_replace(' ', '-', $params['title']);
         $post->user_id = $params['user_id'];
         $post->user_table = $params['user_table'];
         $post->content = $params['content'];
         $post->excerpt = str_limit(strip_tags($params['content'], 50));
-        $post->is_comment = $params['is_comment'];
+
+        if (isset($params['is_comment'])) {
+            $post->is_comment = $params['is_comment'];
+        }
 
         if (isset($params['filepath'])) {
             $post->image = parse_url($params['filepath'], PHP_URL_PATH);
@@ -120,15 +154,26 @@ class PostService
 
         }
 
+        if (isset($params['created_at'])) {
+            $created_at = explode('/', $params['created_at']);
+            $created_at_g = \Morilog\Jalali\CalendarUtils::toGregorian($created_at[0], $created_at[1], $created_at[2]);
+            $created_at_g = Carbon::createFromDate($created_at_g[0], $created_at_g[1], $created_at_g[2]);
+            $post->created_at = $created_at_g;
+        }
+
         $post->save();
 
         if (isset($params['categories'])) {
             $categories = $params['categories'];
+            if (!is_array($categories)) {
+                $categories = [$params['categories']];
+            }
             foreach ($categories as $category) {
                 DB::table('blog_post_category')->insert([
                     'post_id' => $post->id,
                     'category_id' => $category]);
             }
+
         }
         return serviceOk(true);
     }
@@ -183,11 +228,15 @@ class PostService
             $is_upload = upload_file($request->file('image'), null, $post->id, 'uploads/blog/post');
             if ($is_upload) {
                 ///Delete previous image
-                $image_url = $post->image;
-                $image_url = parse_url($image_url)['path'];
-                $image_url = public_path($image_url);
+                if ($post->image) {
+                    $image_url = $post->image;
+                    $image_url = parse_url($image_url);
+                    if (isset($image_url['path'])) {
+                        $image_url = public_path($image_url['path']);
 
-                File::delete($image_url);
+                        File::delete($image_url);
+                    }
+                }
 
                 ///
                 $post->image = $is_upload;
@@ -202,11 +251,15 @@ class PostService
             $is_upload = upload_file($request->file('video'), null, $post->id, 'uploads/blog/post');
             if ($is_upload) {
                 ///Delete previous video
-                $video_url = $post->video;
-                $video_url = parse_url($video_url)['path'];
-                $video_url = public_path($video_url);
+                if ($post->video) {
+                    $video_url = $post->video;
+                    $video_url = parse_url($video_url);
+                    if (isset($video_url['path'])) {
+                        $video_url = public_path($video_url['path']);
 
-                File::delete($video_url);
+                        File::delete($video_url);
+                    }
+                }
 
                 ///
                 $post->video = $is_upload;
@@ -217,15 +270,26 @@ class PostService
 
         }
 
-        $post->save();
+        if (isset($params['created_at'])) {
+            $created_at = explode('/', $params['created_at']);
+            $created_at_g = \Morilog\Jalali\CalendarUtils::toGregorian($created_at[0], $created_at[1], $created_at[2]);
+            $created_at_g = Carbon::createFromDate($created_at_g[0], $created_at_g[1], $created_at_g[2]);
+            $post->created_at = $created_at_g;
+        }
 
-        $categories = $params['categories'];
-        DB::table('blog_post_category')->where('post_id', $params['id'])->delete();
-        if ($categories != null) {
-            foreach ($categories as $category) {
-                DB::table('blog_post_category')->insert([
-                    'post_id' => $params['id'],
-                    'category_id' => $category]);
+        $post->save();
+        if (isset($params['categories'])) {
+            $categories = $params['categories'];
+            if (!is_array($categories)) {
+                $categories = [$params['categories']];
+            }
+            DB::table('blog_post_category')->where('post_id', $params['id'])->delete();
+            if ($categories != null) {
+                foreach ($categories as $category) {
+                    DB::table('blog_post_category')->insert([
+                        'post_id' => $params['id'],
+                        'category_id' => $category]);
+                }
             }
         }
 
@@ -249,6 +313,8 @@ class PostService
             if ($post) {
                 $post->delete();
                 $delete = DB::table('blog_post_category')->where('post_id', $params['id'])->delete();
+            } else {
+                return serviceError(trans('blog::messages.not_found'));
             }
 
         }

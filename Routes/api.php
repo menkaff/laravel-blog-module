@@ -7,6 +7,11 @@ Route::group([
     Route::group(['prefix' => 'post'], function () {
 
         Route::get('/', 'PostController@index');
+        Route::get('/show', 'PostController@show');
+        Route::any('/delete', 'PostController@delete');
+
+        Route::post('/store', 'PostController@store');
+        Route::post('/update', 'PostController@update');
 
     });
 });

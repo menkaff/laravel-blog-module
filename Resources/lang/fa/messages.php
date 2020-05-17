@@ -1,4 +1,5 @@
 <?php return array(
+    'not_found' => 'موردی یافت نشد',
     'blog' => 'بلاگ',
     'categories' => 'دسته بندی',
     'category' => 'دسته بندی',
