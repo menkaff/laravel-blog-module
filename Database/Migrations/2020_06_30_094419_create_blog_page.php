@@ -24,7 +24,6 @@ class CreateBlogPage extends Migration
             $table->string('image')->nullable();
             $table->string('video')->nullable();
             $table->enum('status', ['publish', 'draft'])->default('publish');
-            $table->unsignedTinyInteger('is_comment')->default(1);
 
             $table->timestamps();
         });

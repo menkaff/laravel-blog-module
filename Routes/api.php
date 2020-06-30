@@ -14,6 +14,17 @@ Route::group([
         Route::post('/update', 'PostController@update');
 
     });
+
+    Route::group(['prefix' => 'page'], function () {
+
+        Route::get('/', 'PageController@index');
+        Route::get('/show', 'PageController@show');
+        Route::any('/delete', 'PageController@delete');
+
+        Route::post('/store', 'PageController@store');
+        Route::post('/update', 'PageController@update');
+
+    });
 });
 
 Route::group([
@@ -72,11 +83,12 @@ Route::group([
     Route::get('/post', 'PostController@index');
     Route::get('/post/show', 'PostController@show');
 
-    Route::get('/page/show', 'PageController@show_front');
+    Route::get('/page', 'PageController@index');
+    Route::get('/page/show', 'PageController@show');
 
-    Route::get('/category', 'CategoryController@index_front');
-    Route::get('/category/show', 'CategoryController@show_front');
+    Route::get('/category', 'CategoryController@index');
+    Route::get('/category/show', 'CategoryController@show');
 
-    Route::post('/comment/store', 'CommentController@store_front');
+    Route::post('/comment/store', 'CommentController@store');
 
 });
