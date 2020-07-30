@@ -5,6 +5,7 @@ use App\Rules\PersianYear;
 use Carbon\Carbon;
 use DB;
 use File;
+use Modules\Blog\Models\Image;
 use Modules\Blog\Models\Post;
 use Validator;
 
@@ -82,6 +83,7 @@ class PostService
             ->when(isset($params['page']) && isset($params['per_page']), function ($query) use ($params) {
                 return $query->skip($params['page'] * $params['per_page'])->take($params['per_page']);
             })
+            ->with(['images'])
             ->addSelect([
                 "blog_post.id",
                 "blog_post.title",
@@ -163,6 +165,27 @@ class PostService
 
         $post->save();
 
+        if ($request->images && is_array($request->images)) {
+
+            foreach ($request->images as $image) {
+
+                $is_upload = upload_file($image, null, $post->id, 'uploads/blog/post');
+                if ($is_upload) {
+
+                    $blog_image = new Image;
+                    $blog_image->user_id = $params['user_id'];
+                    $blog_image->user_type = $params['user_table'];
+                    $blog_image->parent_id = $post->id;
+                    $blog_image->parent_type = get_class($post);
+                    $blog_image->url = $is_upload;
+                    $blog_image->save();
+                } else {
+                    return serviceError('Image Invalid');
+                }
+            }
+
+        }
+
         if (isset($params['categories'])) {
             $categories = $params['categories'];
             if (!is_array($categories)) {
@@ -184,6 +207,7 @@ class PostService
         $post = post::where('id', $params['id'])->when(isset($params['user_id']), function ($query) use ($params) {
             $query->where('user_id', $params['user_id']);
         })
+            ->with(['images'])
             ->first();
 
         $categories = DB::table('blog_post_category')->select('category_id')->where('post_id', $params['id'])->get();
@@ -266,6 +290,44 @@ class PostService
 
             } else {
                 return serviceError('Video Invalid');
+            }
+
+        }
+
+        if ($request->images && is_array($request->images)) {
+
+            $blog_images = Image::where([
+                "parent_id" => $post->id,
+                "parent_type" => get_class($post),
+            ])
+                ->get();
+
+            foreach ($blog_images as $blog_image) {
+                $image_url = $blog_image;
+                $image_url = parse_url($image_url);
+                if (isset($image_url['path'])) {
+                    $image_url = public_path($image_url['path']);
+
+                    File::delete($image_url);
+                }
+                $blog_image->delete();
+            }
+
+            foreach ($request->images as $image) {
+
+                $is_upload = upload_file($image, null, $post->id, 'uploads/blog/post');
+                if ($is_upload) {
+
+                    $blog_image = new Image;
+                    $blog_image->user_id = $params['user_id'];
+                    $blog_image->user_type = $params['user_table'];
+                    $blog_image->parent_id = $post->id;
+                    $blog_image->parent_type = get_class($post);
+                    $blog_image->url = $is_upload;
+                    $blog_image->save();
+                } else {
+                    return serviceError('Image Invalid');
+                }
             }
 
         }
