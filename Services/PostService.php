@@ -294,6 +294,31 @@ class PostService
 
         }
 
+        if (isset($params['delete_image'])) {
+            delete_file($post->image);
+            $post->image = ' ';
+        }
+
+        if (isset($params['delete_images']) && is_array($params['delete_images'])) {
+            $blog_images = Image::where([
+                "parent_id" => $post->id,
+                "parent_type" => get_class($post),
+            ])
+                ->whereIn('id', $params['delete_images'])
+                ->get();
+
+            foreach ($blog_images as $blog_image) {
+                $image_url = $blog_image;
+                $image_url = parse_url($image_url);
+                if (isset($image_url['path'])) {
+                    $image_url = public_path($image_url['path']);
+
+                    File::delete($image_url);
+                }
+                $blog_image->delete();
+            }
+        }
+
         if ($request->images && is_array($request->images)) {
 
             $blog_images = Image::where([
@@ -330,6 +355,8 @@ class PostService
                 }
             }
 
+        } else {
+            return serviceOk(var_dump($request->images));
         }
 
         if (isset($params['created_at'])) {

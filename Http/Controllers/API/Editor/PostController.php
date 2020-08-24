@@ -63,7 +63,7 @@ class PostController extends Controller
             $data['user_table'] = "veclu_club";
         }
 
-        return $result = $post_service->store($data, $request);
+        $result = $post_service->store($data, $request);
         if ($result['is_successful']) {
             return responseOk($result['data']);
         } else {
