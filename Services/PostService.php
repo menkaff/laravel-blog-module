@@ -136,8 +136,8 @@ class PostService
 
         if (isset($params['filepath'])) {
             $post->image = parse_url($params['filepath'], PHP_URL_PATH);
-        } elseif ($request->hasFile('image')) {
-            $is_upload = upload_file($request->file('image'), null, $post->id, 'uploads/blog/post');
+        } elseif ($request->hasFile('image') || $request->filled('image')) {
+            $is_upload = upload_file($request->file('image'), null, $post->id, 'uploads/blog/post', $request->image);
             if ($is_upload) {
                 $post->image = $is_upload;
             } else {
@@ -169,7 +169,7 @@ class PostService
 
             foreach ($request->images as $image) {
 
-                $is_upload = upload_file($image, null, $post->id, 'uploads/blog/post');
+                $is_upload = upload_file($image, null, $post->id, 'uploads/blog/post', $image);
                 if ($is_upload) {
 
                     $blog_image = new Image;
@@ -248,8 +248,8 @@ class PostService
 
         if (isset($params['filepath'])) {
             $post->image = parse_url($params['filepath'], PHP_URL_PATH);
-        } elseif ($request->hasFile('image')) {
-            $is_upload = upload_file($request->file('image'), null, $post->id, 'uploads/blog/post');
+        } elseif ($request->hasFile('image') || $request->filled('image')) {
+            $is_upload = upload_file($request->file('image'), $post->image, $post->id, 'uploads/blog/post', $request->image);
             if ($is_upload) {
                 ///Delete previous image
                 if ($post->image) {
@@ -340,7 +340,7 @@ class PostService
 
             foreach ($request->images as $image) {
 
-                $is_upload = upload_file($image, null, $post->id, 'uploads/blog/post');
+                $is_upload = upload_file($image, null, $post->id, 'uploads/blog/post', $image);
                 if ($is_upload) {
 
                     $blog_image = new Image;
