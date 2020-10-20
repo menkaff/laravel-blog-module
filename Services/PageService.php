@@ -182,6 +182,11 @@ class PageService
         $page->content = $params['content'];
         $page->excerpt = str_limit(strip_tags($page->content, 50));
 
+        if (isset($params['delete_image'])) {
+            delete_file($page->image);
+            $page->image = ' ';
+        }
+
         if (isset($params['filepath'])) {
             $page->image = parse_url($params['filepath'], PHP_URL_PATH);
         } elseif ($request->hasFile('image') || $request->filled('image')) {

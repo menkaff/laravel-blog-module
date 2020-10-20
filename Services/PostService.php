@@ -246,6 +246,11 @@ class PostService
         $post->excerpt = str_limit(strip_tags($post->content, 50));
         $post->is_comment = $params['is_comment'];
 
+        if (isset($params['delete_image'])) {
+            delete_file($post->image);
+            $post->image = ' ';
+        }
+
         if (isset($params['filepath'])) {
             $post->image = parse_url($params['filepath'], PHP_URL_PATH);
         } elseif ($request->hasFile('image') || $request->filled('image')) {
