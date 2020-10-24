@@ -75,7 +75,7 @@ class PostService
                 $query->join('blog_post_category', 'blog_post_category.post_id', 'blog_post.id');
                 $query->whereIn('blog_post_category.category_id', $params['category_ids']);
 
-                return $query;
+                
             })
             ->when(isset($params['order_by']), function ($query) use ($params) {
                 $query->orderBy($params['order_by']['key'], $params['order_by']['value']);
@@ -165,9 +165,16 @@ class PostService
 
         $post->save();
 
-        if ($request->images && is_array($request->images)) {
+        if ($request->filled("images")) {
 
-            foreach ($request->images as $image) {
+            $images = [];
+            if (is_array($request->image)) {
+                $images = $request->image;
+            } else {
+                $images = json_decode($request->image);
+            }
+
+            foreach ($images as $image) {
 
                 $is_upload = upload_file($image, null, $post->id, 'uploads/blog/post', $image);
                 if ($is_upload) {
