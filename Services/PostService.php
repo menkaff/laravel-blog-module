@@ -75,7 +75,6 @@ class PostService
                 $query->join('blog_post_category', 'blog_post_category.post_id', 'blog_post.id');
                 $query->whereIn('blog_post_category.category_id', $params['category_ids']);
 
-                
             })
             ->when(isset($params['order_by']), function ($query) use ($params) {
                 $query->orderBy($params['order_by']['key'], $params['order_by']['value']);
@@ -109,16 +108,14 @@ class PostService
     {
         $post = new Post;
 
-        $data = [
-            'title' => $params['title'],
-            'content' => $params['content']];
+        $validator = Validator::make($params, [
+            'title' => 'required',
+            'content' => 'required']);
 
-        $rules = ['title' => 'required', 'content' => 'required'];
-
-        $valid = Validator::make($data, $rules);
-        if ($valid->fails()) {
-            return Redirect::back()->withErrors($valid)->withInput();
+        if ($validator->fails()) {
+            return serviceError($validator->errors());
         }
+
         if (isset($params['status'])) {
             $post->status = $params['status'];
         }
@@ -168,10 +165,10 @@ class PostService
         if ($request->filled("images")) {
 
             $images = [];
-            if (is_array($request->image)) {
-                $images = $request->image;
+            if (is_array($request->images)) {
+                $images = $request->images;
             } else {
-                $images = json_decode($request->image);
+                $images = json_decode($request->images);
             }
 
             foreach ($images as $image) {
@@ -194,10 +191,14 @@ class PostService
         }
 
         if (isset($params['categories'])) {
-            $categories = $params['categories'];
-            if (!is_array($categories)) {
-                $categories = [$params['categories']];
+
+            $categories = [];
+            if (is_array($request->categories)) {
+                $categories = $request->categories;
+            } else {
+                $categories = json_decode($request->categories);
             }
+
             foreach ($categories as $category) {
                 DB::table('blog_post_category')->insert([
                     'post_id' => $post->id,
@@ -230,15 +231,10 @@ class PostService
     public function update($params, $request)
     {
 
-        $data = [
-            'title' => $params['title'],
-            'content' => $params['content']];
-
-        $rules = ['title' => 'required', 'content' => 'required'];
-
-        $valid = Validator::make($data, $rules);
-        if ($valid->fails()) {
-            return Redirect::back()->withErrors($valid)->withInput();
+        $validator = Validator::make($params, [
+            'title' => 'required', 'content' => 'required']);
+        if ($validator->fails()) {
+            return serviceError($validator->errors());
         }
 
         $post = post::where('id', $params['id'])->when(isset($params['user_id']), function ($query) use ($params) {
@@ -331,44 +327,55 @@ class PostService
             }
         }
 
-        if ($request->images && is_array($request->images)) {
+        if ($request->filled("images")) {
 
-            $blog_images = Image::where([
-                "parent_id" => $post->id,
-                "parent_type" => get_class($post),
-            ])
-                ->get();
-
-            foreach ($blog_images as $blog_image) {
-                $image_url = $blog_image;
-                $image_url = parse_url($image_url);
-                if (isset($image_url['path'])) {
-                    $image_url = public_path($image_url['path']);
-
-                    File::delete($image_url);
-                }
-                $blog_image->delete();
+            $images = [];
+            if (is_array($request->images)) {
+                $images = $request->images;
+            } else {
+                $images = json_decode($request->images);
             }
 
-            foreach ($request->images as $image) {
+            $remain_images = [];
+            foreach ($images as $obj) {
+                if (is_string($obj) && (filter_var($obj, FILTER_VALIDATE_URL) != false)) {
+                    $remain_images[] = parse_url($obj, PHP_URL_PATH);
+                }
+            }
 
-                $is_upload = upload_file($image, null, $post->id, 'uploads/blog/post', $image);
-                if ($is_upload) {
+            $delete_images = Image::whereNotIn('url', $remain_images)
+                ->where([
+                    "parent_id" => $post->id,
+                    "parent_type" => get_class($post),
+                ])
+                ->get();
+            foreach ($delete_images as $delete_image) {
+                delete_file($delete_image->image);
+                $delete_image->delete();
+            }
 
-                    $blog_image = new Image;
-                    $blog_image->user_id = $params['user_id'];
-                    $blog_image->user_type = $params['user_table'];
-                    $blog_image->parent_id = $post->id;
-                    $blog_image->parent_type = get_class($post);
-                    $blog_image->url = $is_upload;
-                    $blog_image->save();
-                } else {
-                    return serviceError('Image Invalid');
+            foreach ($images as $obj) {
+                if (is_string($obj) && (filter_var($obj, FILTER_VALIDATE_URL) === false)) {
+
+                    $is_upload = upload_file($obj, null, $post->id, 'uploads/blog/post', $obj);
+                    if ($is_upload) {
+
+                        $blog_image = new Image;
+                        $blog_image->user_id = $params['user_id'];
+                        $blog_image->user_type = $params['user_table'];
+                        $blog_image->parent_id = $post->id;
+                        $blog_image->parent_type = get_class($post);
+                        $blog_image->url = $is_upload;
+                        $blog_image->save();
+                    } else {
+
+                        return serviceError('Image Invalid');
+                    }
                 }
             }
 
         } else {
-            return serviceOk(var_dump($request->images));
+            return serviceOk($request->images);
         }
 
         if (isset($params['created_at'])) {
@@ -380,9 +387,11 @@ class PostService
 
         $post->save();
         if (isset($params['categories'])) {
-            $categories = $params['categories'];
-            if (!is_array($categories)) {
-                $categories = [$params['categories']];
+            $categories = [];
+            if (is_array($request->categories)) {
+                $categories = $request->categories;
+            } else {
+                $categories = json_decode($request->categories);
             }
             DB::table('blog_post_category')->where('post_id', $params['id'])->delete();
             if ($categories != null) {
