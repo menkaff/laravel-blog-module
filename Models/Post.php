@@ -58,4 +58,9 @@ class Post extends Model
             return null;
         }
     }
+
+    public function images()
+    {
+        return $this->morphMany('Modules\Blog\Models\Image', 'parent');
+    }
 }

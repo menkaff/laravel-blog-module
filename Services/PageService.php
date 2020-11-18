@@ -113,8 +113,8 @@ class PageService
 
         if (isset($params['filepath'])) {
             $page->image = parse_url($params['filepath'], PHP_URL_PATH);
-        } elseif ($request->hasFile('image')) {
-            $is_upload = upload_file($request->file('image'), null, $page->id, 'uploads/blog/post');
+        } elseif ($request->hasFile('image') || $request->filled('image')) {
+            $is_upload = upload_file($request->file('image'), null, $page->id, 'uploads/blog/post', $request->image);
             if ($is_upload) {
                 $page->image = $is_upload;
             } else {
@@ -182,10 +182,15 @@ class PageService
         $page->content = $params['content'];
         $page->excerpt = str_limit(strip_tags($page->content, 50));
 
+        if (isset($params['delete_image'])) {
+            delete_file($page->image);
+            $page->image = ' ';
+        }
+
         if (isset($params['filepath'])) {
             $page->image = parse_url($params['filepath'], PHP_URL_PATH);
-        } elseif ($request->hasFile('image')) {
-            $is_upload = upload_file($request->file('image'), null, $page->id, 'uploads/blog/post');
+        } elseif ($request->hasFile('image') || $request->filled('image')) {
+            $is_upload = upload_file($request->file('image'), $page->image, $page->id, 'uploads/blog/post', $request->image);
             if ($is_upload) {
                 ///Delete previous image
                 if ($page->image) {

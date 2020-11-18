@@ -58,11 +58,12 @@ class PostController extends Controller
         $user = Auth::user();
         $data['user_id'] = $user->id;
         $data['user_table'] = $user->getTable();
+
         if ($data['user_table'] == "veclu_manager") {
             $data['user_table'] = "veclu_club";
         }
 
-        return $result = $post_service->store($data, $request);
+        $result = $post_service->store($data, $request);
         if ($result['is_successful']) {
             return responseOk($result['data']);
         } else {
@@ -82,7 +83,7 @@ class PostController extends Controller
             $data['user_table'] = "veclu_club";
         }
 
-        $result = $post_service->update($data,$request);
+        $result = $post_service->update($data, $request);
         if ($result['is_successful']) {
             return responseOk($result['data']);
         } else {
