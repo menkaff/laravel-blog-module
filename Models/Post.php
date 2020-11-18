@@ -44,7 +44,7 @@ class Post extends Model
     public function getCreatedAtAttribute($date)
     {
     if ($date) {
-            return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->timestamp;
+            return \Carbon\Carbon::parse($date)->timestamp;
         } else {
             return null;
         }
@@ -53,7 +53,7 @@ class Post extends Model
     public function getUpdatedAtAttribute($date)
     {
     if ($date) {
-            return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->timestamp;
+            return \Carbon\Carbon::parse($date)->timestamp;
         } else {
             return null;
         }
