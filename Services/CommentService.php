@@ -22,7 +22,7 @@ class CommentService
     {
         $comments = Comment::
             when(isset($params['page']) && isset($params['per_page']), function ($query) use ($params) {
-            return $query->skip($params['page'] * $params['per_page'])->take($params['per_page']);
+            $query->skip($params['page'] * $params['per_page'])->take($params['per_page']);
         })
             ->get();
         return serviceOk(['comments' => $comments]);

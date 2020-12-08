@@ -64,7 +64,7 @@ class PageService
                 $query->orderBy($params['order_by']['key'], $params['order_by']['value']);
             })
             ->when(isset($params['page']) && isset($params['per_page']), function ($query) use ($params) {
-                return $query->skip($params['page'] * $params['per_page'])->take($params['per_page']);
+                $query->skip($params['page'] * $params['per_page'])->take($params['per_page']);
             })
             ->addSelect([
                 "blog_page.id",
