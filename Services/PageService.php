@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Blog\Services;
 
 use App\Rules\PersianYear;
@@ -22,24 +23,23 @@ class PageService
             return serviceError($validator->errors());
         }
 
-        $pages = Page::
-            when(isset($params['word']), function ($query) use ($params) {
+        $pages = Page::when(isset($params['word']), function ($query) use ($params) {
             $query->where('title', 'LIKE', '%' . $params['word'] . '%');
             $query->orwhere('content', 'LIKE', '%' . $params['word'] . '%');
         })
-            ->when(isset($params['from_date']), function ($q) use ($params) {
+            ->when(isset($params['from_date']), function ($query) use ($params) {
                 $from_date = explode('/', $params['from_date']);
                 $from_date_g = \Morilog\Jalali\CalendarUtils::toGregorian($from_date[0], $from_date[1], $from_date[2]);
                 $from_date_g = Carbon::createFromDate($from_date_g[0], $from_date_g[1], $from_date_g[2], 'Asia/Tehran')->format('Y-m-d');
 
-                return $q->where('blog_page.created_at', '>=', $from_date_g);
+                return $query->where('blog_page.created_at', '>=', $from_date_g);
             })
-            ->when(isset($params['to_date']), function ($q) use ($params) {
+            ->when(isset($params['to_date']), function ($query) use ($params) {
                 $to_date = explode('/', $params['to_date']);
                 $to_date_g = \Morilog\Jalali\CalendarUtils::toGregorian($to_date[0], $to_date[1], $to_date[2]);
                 $to_date_g = Carbon::createFromDate($to_date_g[0], $to_date_g[1], $to_date_g[2], 'Asia/Tehran')->format('Y-m-d');
 
-                return $q->where('blog_page.created_at', '<=', $to_date_g);
+                return $query->where('blog_page.created_at', '<=', $to_date_g);
             })
             ->when(isset($params['user_id']), function ($query) use ($params) {
                 if (is_array($params['user_id'])) {
@@ -83,7 +83,6 @@ class PageService
             ->get();
 
         return serviceOk($pages);
-
     }
 
     public function store($params, $request)
@@ -92,7 +91,8 @@ class PageService
 
         $data = [
             'title' => $params['title'],
-            'content' => $params['content']];
+            'content' => $params['content']
+        ];
 
         $rules = ['title' => 'required', 'content' => 'required'];
 
@@ -120,7 +120,6 @@ class PageService
             } else {
                 return serviceError('Image Invalid');
             }
-
         }
 
         if ($request->hasFile('video')) {
@@ -130,7 +129,6 @@ class PageService
             } else {
                 return serviceError('Video Invalid');
             }
-
         }
 
         if (isset($params['created_at'])) {
@@ -154,7 +152,6 @@ class PageService
             ->first();
 
         return serviceOk(['post' => $page]);
-
     }
 
     public function update($params, $request)
@@ -162,7 +159,8 @@ class PageService
 
         $data = [
             'title' => $params['title'],
-            'content' => $params['content']];
+            'content' => $params['content']
+        ];
 
         $rules = ['title' => 'required', 'content' => 'required'];
 
@@ -205,11 +203,9 @@ class PageService
 
                 ///
                 $page->image = $is_upload;
-
             } else {
                 return serviceError('Image Invalid');
             }
-
         }
 
         if ($request->hasFile('video')) {
@@ -228,11 +224,9 @@ class PageService
 
                 ///
                 $page->video = $is_upload;
-
             } else {
                 return serviceError('Video Invalid');
             }
-
         }
 
         if (isset($params['created_at'])) {
@@ -266,10 +260,8 @@ class PageService
             } else {
                 return serviceError(trans('blog::messages.not_found'));
             }
-
         }
 
         return serviceOk(true);
-
     }
 }
