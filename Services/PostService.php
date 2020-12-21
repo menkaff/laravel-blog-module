@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Blog\Services;
 
 use App\Rules\PersianYear;
@@ -31,27 +32,25 @@ class PostService
             return serviceError($validator->errors());
         }
 
-        $posts = Post::
-            when(isset($params['word']), function ($query) use ($params) {
+        $posts = Post::when(isset($params['word']), function ($query) use ($params) {
             $query->where('title', 'LIKE', '%' . $params['word'] . '%');
             $query->orwhere('content', 'LIKE', '%' . $params['word'] . '%');
         })
-            ->when(isset($params['from_date']), function ($q) use ($params) {
+            ->when(isset($params['from_date']), function ($query) use ($params) {
                 $from_date = explode('/', $params['from_date']);
                 $from_date_g = \Morilog\Jalali\CalendarUtils::toGregorian($from_date[0], $from_date[1], $from_date[2]);
                 $from_date_g = Carbon::createFromDate($from_date_g[0], $from_date_g[1], $from_date_g[2], 'Asia/Tehran')->format('Y-m-d');
 
-                return $q->where('blog_post.created_at', '>=', $from_date_g);
+                $query->where('blog_post.created_at', '>=', $from_date_g);
             })
-            ->when(isset($params['to_date']), function ($q) use ($params) {
+            ->when(isset($params['to_date']), function ($query) use ($params) {
                 $to_date = explode('/', $params['to_date']);
                 $to_date_g = \Morilog\Jalali\CalendarUtils::toGregorian($to_date[0], $to_date[1], $to_date[2]);
                 $to_date_g = Carbon::createFromDate($to_date_g[0], $to_date_g[1], $to_date_g[2], 'Asia/Tehran')->format('Y-m-d');
 
-                return $q->where('blog_post.created_at', '<=', $to_date_g);
+                $query->where('blog_post.created_at', '<=', $to_date_g);
             })
             ->when(isset($params['user_id']), function ($query) use ($params) {
-                // $query->where('blog_post.user_id', $params['user_id']);
                 if (is_array($params['user_id'])) {
                     $query->whereIn('blog_post.user_id', $params['user_id']);
                 } else {
@@ -74,13 +73,12 @@ class PostService
 
                 $query->join('blog_post_category', 'blog_post_category.post_id', 'blog_post.id');
                 $query->whereIn('blog_post_category.category_id', $params['category_ids']);
-
             })
             ->when(isset($params['order_by']), function ($query) use ($params) {
                 $query->orderBy($params['order_by']['key'], $params['order_by']['value']);
             })
             ->when(isset($params['page']) && isset($params['per_page']), function ($query) use ($params) {
-                return $query->skip($params['page'] * $params['per_page'])->take($params['per_page']);
+                $query->skip($params['page'] * $params['per_page'])->take($params['per_page']);
             })
             ->with(['images'])
             ->addSelect([
@@ -101,7 +99,6 @@ class PostService
             ->get();
 
         return serviceOk($posts);
-
     }
 
     public function store($params, $request)
@@ -110,7 +107,8 @@ class PostService
 
         $validator = Validator::make($params, [
             'title' => 'required',
-            'content' => 'required']);
+            'content' => 'required'
+        ]);
 
         if ($validator->fails()) {
             return serviceError($validator->errors());
@@ -140,7 +138,6 @@ class PostService
             } else {
                 return serviceError('Image Invalid');
             }
-
         }
 
         if ($request->hasFile('video')) {
@@ -150,7 +147,6 @@ class PostService
             } else {
                 return serviceError('Video Invalid');
             }
-
         }
 
         if (isset($params['created_at'])) {
@@ -187,7 +183,6 @@ class PostService
                     return serviceError('Image Invalid');
                 }
             }
-
         }
 
         if (isset($params['categories'])) {
@@ -202,9 +197,9 @@ class PostService
             foreach ($categories as $category) {
                 DB::table('blog_post_category')->insert([
                     'post_id' => $post->id,
-                    'category_id' => $category]);
+                    'category_id' => $category
+                ]);
             }
-
         }
         return serviceOk(true);
     }
@@ -225,14 +220,14 @@ class PostService
         }
 
         return serviceOk(['post' => $post, 'categories_ids' => $categories_ids]);
-
     }
 
     public function update($params, $request)
     {
 
         $validator = Validator::make($params, [
-            'title' => 'required', 'content' => 'required']);
+            'title' => 'required', 'content' => 'required'
+        ]);
         if ($validator->fails()) {
             return serviceError($validator->errors());
         }
@@ -272,11 +267,9 @@ class PostService
 
                 ///
                 $post->image = $is_upload;
-
             } else {
                 return serviceError('Image Invalid');
             }
-
         }
 
         if ($request->hasFile('video')) {
@@ -295,11 +288,9 @@ class PostService
 
                 ///
                 $post->video = $is_upload;
-
             } else {
                 return serviceError('Video Invalid');
             }
-
         }
 
         if (isset($params['delete_image'])) {
@@ -373,7 +364,6 @@ class PostService
                     }
                 }
             }
-
         } else {
             return serviceOk($request->images);
         }
@@ -398,7 +388,8 @@ class PostService
                 foreach ($categories as $category) {
                     DB::table('blog_post_category')->insert([
                         'post_id' => $params['id'],
-                        'category_id' => $category]);
+                        'category_id' => $category
+                    ]);
                 }
             }
         }
@@ -426,11 +417,8 @@ class PostService
             } else {
                 return serviceError(trans('blog::messages.not_found'));
             }
-
         }
 
         return serviceOk(true);
-
     }
-
 }
