@@ -1,5 +1,5 @@
 <?php
-namespace Modules\Blog\Http\Controllers\API\EndUSer;
+namespace Modules\Blog\Http\Controllers\API\EndUser;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
