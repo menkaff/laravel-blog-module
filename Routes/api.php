@@ -12,7 +12,6 @@ Route::group([
 
         Route::post('/store', 'PostController@store');
         Route::post('/update', 'PostController@update');
-
     });
 
     Route::group(['prefix' => 'page'], function () {
@@ -23,7 +22,6 @@ Route::group([
 
         Route::post('/store', 'PageController@store');
         Route::post('/update', 'PageController@update');
-
     });
 });
 
@@ -40,7 +38,6 @@ Route::group([
 
         Route::post('/store', 'PostController@store');
         Route::post('/update', 'PostController@update');
-
     });
 
     Route::group(['prefix' => 'page'], function () {
@@ -51,7 +48,6 @@ Route::group([
 
         Route::post('/store', 'PageController@store');
         Route::post('/update', 'PageController@update');
-
     });
 
     Route::group(['prefix' => 'category'], function () {
@@ -69,14 +65,11 @@ Route::group([
         Route::get('/', 'CommentController@index');
         Route::any('/confirm', 'CommentController@confirm');
         Route::any('/delete', 'CommentController@delete');
-
     });
-
 });
 
 Route::group([
     'prefix' => 'blog/v1/end_user',
-    'middleware' => ['auth.api_blog_end_user'],
     'namespace' => 'API\EndUser',
 ], function ($api) {
 
@@ -90,5 +83,4 @@ Route::group([
     Route::get('/category/show', 'CategoryController@show');
 
     Route::post('/comment/store', 'CommentController@store');
-
 });
