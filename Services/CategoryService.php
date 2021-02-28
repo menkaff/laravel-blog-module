@@ -23,7 +23,7 @@ class CategoryService
         ]);
 
         if ($validator->fails()) {
-            return responseError($validator->errors());
+            return responseError($validator->errors(),400);
         }
 
         $category = new Category;
