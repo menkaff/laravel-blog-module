@@ -1,102 +1,86 @@
 <?php
-
 namespace Modules\Blog\Http\Controllers\API\Editor;
 
 use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Modules\Blog\Services\PostService;
+use Modules\Auth\Models\User;
+use Modules\Blog\Services\PageService;
 
-/**
- * @group  Blog Editor
- *
- * APIs for Editor Panel
- */
-class PostController extends Controller
+class PageController extends Controller
 {
 
     public function index(Request $request)
     {
-        $post_service = new PostService;
-        $data = $request->all();
-        $user = Auth::user();
-        $data['user_id'] = $user->id;
-        $data['user_type'] = $user->getTable();
-
-        $result = $post_service->index($data);
+        $page_service = new PageService;
+        $result = $page_service->index($request->all());
         if ($result['is_successful']) {
             return responseOk($result['data']);
         } else {
             return responseError($result['message']);
+
         }
     }
 
     public function show(Request $request)
     {
-        $post_service = new PostService;
-        $data = $request->all();
-        $user = Auth::user();
-        $data['user_id'] = $user->id;
-        $data['user_type'] = $user->getTable();
-
-
-        $result = $post_service->show($data);
+        $page_service = new PageService;
+        $result = $page_service->show($request->all());
         if ($result['is_successful']) {
             return responseOk($result['data']);
         } else {
             return responseError($result['message']);
+
         }
+
     }
 
     public function store(Request $request)
     {
-        $post_service = new PostService;
+        $page_service = new PageService;
+
         $data = $request->all();
         $user = Auth::user();
         $data['user_id'] = $user->id;
-        $data['user_type'] = $user->getTable();
+        $data['user_table'] = $user->getTable();
 
-
-
-        $result = $post_service->store($data, $request);
+        $result = $page_service->store($data, $request);
         if ($result['is_successful']) {
             return responseOk($result['data']);
         } else {
             return responseError($result['message']);
+
         }
     }
 
     public function update(Request $request)
     {
-        $post_service = new PostService;
+        $page_service = new PageService;
+
         $data = $request->all();
         $user = Auth::user();
         $data['user_id'] = $user->id;
-        $data['user_type'] = $user->getTable();
+        $data['user_table'] = $user->getTable();
 
-
-        $result = $post_service->update($data, $request);
+        $result = $page_service->update($data, $request);
         if ($result['is_successful']) {
             return responseOk($result['data']);
         } else {
             return responseError($result['message']);
+
         }
     }
 
     public function delete(Request $request)
     {
-        $post_service = new PostService;
-        $data = $request->all();
-        $user = Auth::user();
-        $data['user_id'] = $user->id;
-        $data['user_type'] = $user->getTable();
-
-
-        $result = $post_service->delete($data);
+        $page_service = new PageService;
+        $result = $page_service->delete($request->all());
         if ($result['is_successful']) {
             return responseOk($result['data']);
         } else {
             return responseError($result['message']);
+
         }
     }
+
 }

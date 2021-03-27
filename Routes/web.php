@@ -1,6 +1,6 @@
 <?php
 
-Route::group(['middleware' => ['web', 'auth', 'permission_check'], 'prefix' => 'admin/blog', 'namespace' => 'WEB'], function () {
+Route::group(['middleware' => ['web', 'auth', 'permission_check'], 'prefix' => 'admin/blog', 'namespace' => 'WEB\Admin'], function () {
     Route::get('/', 'BlogController@index');
     Route::group(['prefix' => 'post'], function () {
 
@@ -11,7 +11,6 @@ Route::group(['middleware' => ['web', 'auth', 'permission_check'], 'prefix' => '
 
         Route::post('/store', 'PostController@store');
         Route::post('/update', 'PostController@update');
-
     });
 
     Route::group(['prefix' => 'page'], function () {
@@ -23,7 +22,6 @@ Route::group(['middleware' => ['web', 'auth', 'permission_check'], 'prefix' => '
 
         Route::post('/store', 'PageController@store');
         Route::post('/update', 'PageController@update');
-
     });
 
     Route::group(['prefix' => 'category'], function () {
@@ -43,14 +41,12 @@ Route::group(['middleware' => ['web', 'auth', 'permission_check'], 'prefix' => '
         Route::get('/', 'CommentController@index');
         Route::any('/confirm', 'CommentController@confirm');
         Route::any('/delete', 'CommentController@delete');
-
     });
-
 });
 
 /********************* EndUser Functions ****************************/
 
-Route::group(['middleware' => ['web'], 'prefix' => 'blog', 'namespace' => 'Modules\Blog\Http\Controllers\WEB'], function () {
+Route::group(['middleware' => ['web'], 'prefix' => 'blog', 'namespace' => 'WEB\EndUser'], function () {
 
     Route::get('/', 'BlogController@index_front');
     Route::get('/post', 'PostController@index_front');
@@ -61,11 +57,9 @@ Route::group(['middleware' => ['web'], 'prefix' => 'blog', 'namespace' => 'Modul
 
     Route::get('/category', 'CategoryController@index_front');
     Route::get('/category/show', 'CategoryController@show_front');
-
 });
 
-Route::group(['middleware' => ['web'], 'prefix' => 'blog', 'namespace' => 'Modules\Blog\Http\Controllers'], function () {
+Route::group(['middleware' => ['web'], 'prefix' => 'blog', 'namespace' => 'WEB\EndUser'], function () {
 
     Route::post('/comment/store', 'CommentController@store_front');
-
 });

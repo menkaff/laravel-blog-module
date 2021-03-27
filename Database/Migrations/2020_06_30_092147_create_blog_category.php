@@ -18,18 +18,11 @@ class CreateBlogCategory extends Migration
             $table->string('name');
             $table->string('image')->nullable();
             $table->unsignedInteger('parent_id')->nullable();
-            $table->index('parent_id');
 
-            $table->integer('_lft')->nullable();
-            $table->index('_lft');
-
-            $table->integer('_rgt')->nullable();
-            $table->index('_rgt');
-
-            $table->integer('depth')->nullable();
+            $table->unsignedInteger('user_id');
+            $table->string('user_type')->default('user_module_users');
             $table->timestamps();
         });
-
     }
 
     /**

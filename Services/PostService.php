@@ -57,16 +57,16 @@ class PostService
                     $query->where('blog_post.user_id', '=', $params['user_id']);
                 }
             })
-            ->when(isset($params['user_table']), function ($query) use ($params) {
-                $query->where('blog_post.user_table', $params['user_table']);
+            ->when(isset($params['user_type']), function ($query) use ($params) {
+                $query->where('blog_post.user_type', $params['user_type']);
             })
-            ->when(isset($params['user_table']) && isset($params['include_user']), function ($query) use ($params) {
-                $query->join($params['user_table'], $params['user_table'] . '.id', 'blog_post.user_id');
-                $query->where('blog_post.user_table', $params['user_table']);
+            ->when(isset($params['user_type']) && isset($params['include_user']), function ($query) use ($params) {
+                $query->join($params['user_type'], $params['user_type'] . '.id', 'blog_post.user_id');
+                $query->where('blog_post.user_type', $params['user_type']);
 
                 $query->addSelect([
-                    $params['user_table'] . '.id as user.id',
-                    $params['user_table'] . '.name as user.name',
+                    $params['user_type'] . '.id as user.id',
+                    $params['user_type'] . '.name as user.name',
                 ]);
             })
             ->when(isset($params['category_ids']), function ($query) use ($params) {
@@ -86,7 +86,7 @@ class PostService
                 "blog_post.title",
                 "blog_post.url",
                 "blog_post.user_id",
-                "blog_post.user_table",
+                "blog_post.user_type",
                 "blog_post.content",
                 "blog_post.excerpt",
                 "blog_post.image",
@@ -121,7 +121,7 @@ class PostService
         $post->title = $params['title'];
         $post->url = str_replace(' ', '-', $params['title']);
         $post->user_id = $params['user_id'];
-        $post->user_table = $params['user_table'];
+        $post->user_type = $params['user_type'];
         $post->content = $params['content'];
         $post->excerpt = str_limit(strip_tags($params['content'], 50));
 
@@ -174,7 +174,7 @@ class PostService
 
                     $blog_image = new Image;
                     $blog_image->user_id = $params['user_id'];
-                    $blog_image->user_type = $params['user_table'];
+                    $blog_image->user_type = $params['user_type'];
                     $blog_image->parent_id = $post->id;
                     $blog_image->parent_type = get_class($post);
                     $blog_image->url = $is_upload;
@@ -353,7 +353,7 @@ class PostService
 
                         $blog_image = new Image;
                         $blog_image->user_id = $params['user_id'];
-                        $blog_image->user_type = $params['user_table'];
+                        $blog_image->user_type = $params['user_type'];
                         $blog_image->parent_id = $post->id;
                         $blog_image->parent_type = get_class($post);
                         $blog_image->url = $is_upload;

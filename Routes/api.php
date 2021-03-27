@@ -79,8 +79,8 @@ Route::group([
     Route::get('/page', 'PageController@index');
     Route::get('/page/show', 'PageController@show');
 
-    Route::get('/category', 'CategoryController@index');
-    Route::get('/category/show', 'CategoryController@show');
+    // Route::get('/category', 'CategoryController@index');
+    // Route::get('/category/show', 'CategoryController@show');
 
-    Route::post('/comment/store', 'CommentController@store');
+    // Route::post('/comment/store', 'CommentController@store');
 });
