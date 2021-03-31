@@ -3,47 +3,38 @@
 namespace Modules\Blog\Models;
 
 use DB;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Kalnoy\Nestedset\NodeTrait;
 
 class Category extends Model
 {
     use NodeTrait;
+    use HasFactory;
 
     protected $table = 'blog_category';
 
     protected $fillable = ['name', 'image'];
 
+    protected static function newFactory()
+    {
+        return \Modules\Blog\Database\factories\CategoryFactory::new();
+    }
+
+    public function userable()
+    {
+        return $this->morphTo();
+    }
+
     public function posts()
     {
-        return $this->belongsToMany('Modules\Blog\Models\Post','blog_post_category','category_id','post_id');
-
-    }
-
-    public function child_c()
-    {
-        return count($this->getImmediateDescendants());
-    }
-
-    public function post_c()
-    {
-        return DB::table('blog_post_category')->where('category_id', $this->id)->count();
-    }
-
-    public function parent_f()
-    {
-        try {
-            $parent = Category::findOrFail($this->parent_id)->name;
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $ex) {
-            return trans('blog::messages.levelone');
-        }
-        return $parent;
+        return $this->belongsToMany('Modules\Blog\Models\Post', 'blog_post_category', 'category_id', 'post_id');
     }
 
     public static function render($categories = array(), $is_checkbox = 'checkbox', $is_leaf_only = false, $is_root = true, $is_category = true, $edit_id = 0)
     {
 
-        function renderNode_Category($node, $categories, $is_checkbox = 'checkbox', $is_leaf_only = false, $edit_id = 0)
+        function renderNodeCategory($node, $categories, $is_checkbox = 'checkbox', $is_leaf_only = false, $edit_id = 0)
         {
 
             echo "<li>";
@@ -75,7 +66,7 @@ class Category extends Model
 
                 echo "<ul class='tree'>";
                 foreach ($node->children as $child) {
-                    renderNode_Category($child, $categories, $is_checkbox, $is_leaf_only, $edit_id);
+                    renderNodeCategory($child, $categories, $is_checkbox, $is_leaf_only, $edit_id);
                 }
                 echo "</ul>";
                 // echo "</div>";
@@ -120,7 +111,7 @@ class Category extends Model
         }
 
         foreach ($roots as $root) {
-            renderNode_Category($root, $categories, $is_checkbox, $is_leaf_only, $edit_id);
+            renderNodeCategory($root, $categories, $is_checkbox, $is_leaf_only, $edit_id);
         }
         echo "</ul>";
     }
@@ -157,5 +148,4 @@ class Category extends Model
         }
         echo "</ul>";
     }
-
 }
