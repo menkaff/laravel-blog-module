@@ -9,16 +9,11 @@ use File;
 use Modules\Blog\Models\Image;
 use Modules\Blog\Models\Post;
 use Validator;
+use Illuminate\Support\Str;
+
 
 class PostService
 {
-
-    public function recent_posts($count = 3)
-    {
-        $recent_posts = Post::orderBy('created_at', 'DESC')->limit($count)->get();
-        return serviceOk($recent_posts);
-    }
-
     public function index($params)
     {
         $validator = Validator::make($params, [
@@ -50,23 +45,23 @@ class PostService
 
                 $query->where('blog_post.created_at', '<=', $to_date_g);
             })
-            ->when(isset($params['user_id']), function ($query) use ($params) {
-                if (is_array($params['user_id'])) {
-                    $query->whereIn('blog_post.user_id', $params['user_id']);
+            ->when(isset($params['userable_id']), function ($query) use ($params) {
+                if (is_array($params['userable_id'])) {
+                    $query->whereIn('blog_post.userable_id', $params['userable_id']);
                 } else {
-                    $query->where('blog_post.user_id', '=', $params['user_id']);
+                    $query->where('blog_post.userable_id', '=', $params['userable_id']);
                 }
             })
-            ->when(isset($params['user_type']), function ($query) use ($params) {
-                $query->where('blog_post.user_type', $params['user_type']);
+            ->when(isset($params['userable_type']), function ($query) use ($params) {
+                $query->where('blog_post.userable_type', $params['userable_type']);
             })
-            ->when(isset($params['user_type']) && isset($params['include_user']), function ($query) use ($params) {
-                $query->join($params['user_type'], $params['user_type'] . '.id', 'blog_post.user_id');
-                $query->where('blog_post.user_type', $params['user_type']);
+            ->when(isset($params['userable_type']) && isset($params['include_userable']), function ($query) use ($params) {
+                $query->join($params['userable_type'], $params['userable_type'] . '.id', 'blog_post.userable_id');
+                $query->where('blog_post.userable_type', $params['userable_type']);
 
                 $query->addSelect([
-                    $params['user_type'] . '.id as user.id',
-                    $params['user_type'] . '.name as user.name',
+                    $params['userable_type'] . '.id as userable.id',
+                    $params['userable_type'] . '.name as userable.name',
                 ]);
             })
             ->when(isset($params['category_ids']), function ($query) use ($params) {
@@ -85,8 +80,8 @@ class PostService
                 "blog_post.id",
                 "blog_post.title",
                 "blog_post.url",
-                "blog_post.user_id",
-                "blog_post.user_type",
+                "blog_post.userable_id",
+                "blog_post.userable_type",
                 "blog_post.content",
                 "blog_post.excerpt",
                 "blog_post.image",
@@ -120,10 +115,10 @@ class PostService
 
         $post->title = $params['title'];
         $post->url = str_replace(' ', '-', $params['title']);
-        $post->user_id = $params['user_id'];
-        $post->user_type = $params['user_type'];
+        $post->userable_id = $params['userable_id'];
+        $post->userable_type = $params['userable_type'];
         $post->content = $params['content'];
-        $post->excerpt = str_limit(strip_tags($params['content'], 50));
+        $post->excerpt = Str::limit(strip_tags($params['content'], 50));
 
         if (isset($params['is_comment'])) {
             $post->is_comment = $params['is_comment'];
@@ -173,8 +168,8 @@ class PostService
                 if ($is_upload) {
 
                     $blog_image = new Image;
-                    $blog_image->user_id = $params['user_id'];
-                    $blog_image->user_type = $params['user_type'];
+                    $blog_image->userable_id = $params['userable_id'];
+                    $blog_image->userable_type = $params['userable_type'];
                     $blog_image->parent_id = $post->id;
                     $blog_image->parent_type = get_class($post);
                     $blog_image->url = $is_upload;
@@ -186,6 +181,7 @@ class PostService
         }
 
         if (isset($params['categories'])) {
+
 
             $categories = [];
             if (is_array($request->categories)) {
@@ -201,14 +197,14 @@ class PostService
                 ]);
             }
         }
-        return serviceOk(true);
+        return serviceOk($post);
     }
 
     public function show($params)
     {
 
-        $post = post::where('id', $params['id'])->when(isset($params['user_id']), function ($query) use ($params) {
-            $query->where('user_id', $params['user_id']);
+        $post = post::where('id', $params['id'])->when(isset($params['userable_id']), function ($query) use ($params) {
+            $query->where('userable_id', $params['userable_id']);
         })
             ->with(['images'])
             ->first();
@@ -226,23 +222,32 @@ class PostService
     {
 
         $validator = Validator::make($params, [
-            'title' => 'required', 'content' => 'required'
+            'title' => 'required',
+            'content' => 'required'
         ]);
         if ($validator->fails()) {
             return serviceError($validator->errors());
         }
 
-        $post = post::where('id', $params['id'])->when(isset($params['user_id']), function ($query) use ($params) {
-            $query->where('user_id', $params['user_id']);
+        $post = post::where('id', $params['id'])->when(isset($params['userable_id']), function ($query) use ($params) {
+            $query->where('userable_id', $params['userable_id']);
         })
             ->first();
 
-        $post->status = $params['status'];
+
+        if (!$post) {
+            return serviceError(trans("blog::messages.403"));
+        }
+
         $post->title = $params['title'];
         $post->url = str_replace(' ', '-', $params['title']);
         $post->content = $params['content'];
-        $post->excerpt = str_limit(strip_tags($post->content, 50));
-        $post->is_comment = $params['is_comment'];
+        $post->excerpt = Str::limit(strip_tags($post->content, 50));
+
+        if (isset($params["status"]))
+            $post->status = $params['status'];
+        if (isset($params["is_comment"]))
+            $post->is_comment = $params['is_comment'];
 
         if (isset($params['delete_image'])) {
             delete_file($post->image);
@@ -264,8 +269,6 @@ class PostService
                         File::delete($image_url);
                     }
                 }
-
-                ///
                 $post->image = $is_upload;
             } else {
                 return serviceError('Image Invalid');
@@ -285,8 +288,6 @@ class PostService
                         File::delete($video_url);
                     }
                 }
-
-                ///
                 $post->video = $is_upload;
             } else {
                 return serviceError('Video Invalid');
@@ -352,8 +353,8 @@ class PostService
                     if ($is_upload) {
 
                         $blog_image = new Image;
-                        $blog_image->user_id = $params['user_id'];
-                        $blog_image->user_type = $params['user_type'];
+                        $blog_image->userable_id = $params['userable_id'];
+                        $blog_image->userable_type = $params['userable_type'];
                         $blog_image->parent_id = $post->id;
                         $blog_image->parent_type = get_class($post);
                         $blog_image->url = $is_upload;
@@ -364,8 +365,6 @@ class PostService
                     }
                 }
             }
-        } else {
-            return serviceOk($request->images);
         }
 
         if (isset($params['created_at'])) {
@@ -394,7 +393,7 @@ class PostService
             }
         }
 
-        return serviceOk(true);
+        return serviceOk($post);
     }
 
     public function delete($params)
@@ -407,8 +406,8 @@ class PostService
 
         foreach ($params['ids'] as $params['id']) {
 
-            $post = post::where('id', $params['id'])->when(isset($params['user_id']), function ($query) use ($params) {
-                $query->where('user_id', $params['user_id']);
+            $post = post::where('id', $params['id'])->when(isset($params['userable_id']), function ($query) use ($params) {
+                $query->where('userable_id', $params['userable_id']);
             })
                 ->first();
             if ($post) {

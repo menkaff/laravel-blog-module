@@ -17,8 +17,8 @@ class CreateBlogPost extends Migration
             $table->Increments('id');
             $table->string('title')->nullable();
             $table->string('url');
-            $table->unsignedInteger('user_id');
-            $table->string('user_type')->default('user_module_users');
+            $table->unsignedInteger('userable_id');
+            $table->string('userable_type');
             $table->text('content');
             $table->text('excerpt');
             $table->string('image')->nullable();
