@@ -127,7 +127,7 @@ class PostService
         if (isset($params['filepath'])) {
             $post->image = parse_url($params['filepath'], PHP_URL_PATH);
         } elseif ($request->hasFile('image') || $request->filled('image')) {
-            $is_upload = upload_file($request->file('image'), null, $post->id, 'uploads/blog/post', $request->image);
+            $is_upload = upload_file($request->file('image'), null, $post->id, 'public/uploads/blog/post', $request->image);
             if ($is_upload) {
                 $post->image = $is_upload;
             } else {
@@ -136,7 +136,7 @@ class PostService
         }
 
         if ($request->hasFile('video')) {
-            $is_upload = upload_file($request->file('video'), null, $post->id, 'uploads/blog/post');
+            $is_upload = upload_file($request->file('video'), null, $post->id, 'public/uploads/blog/post');
             if ($is_upload) {
                 $post->video = $is_upload;
             } else {
@@ -164,16 +164,12 @@ class PostService
 
             foreach ($images as $image) {
 
-                $is_upload = upload_file($image, null, $post->id, 'uploads/blog/post', $image);
+                $is_upload = upload_file($image, null, $post->id, 'public/uploads/blog/post', $image);
                 if ($is_upload) {
 
                     $blog_image = new Image;
-                    $blog_image->userable_id = $params['userable_id'];
-                    $blog_image->userable_type = $params['userable_type'];
-                    $blog_image->parent_id = $post->id;
-                    $blog_image->parent_type = get_class($post);
                     $blog_image->url = $is_upload;
-                    $blog_image->save();
+                    $post->images()->save($blog_image);
                 } else {
                     return serviceError('Image Invalid');
                 }
@@ -181,8 +177,6 @@ class PostService
         }
 
         if (isset($params['categories'])) {
-
-
             $categories = [];
             if (is_array($request->categories)) {
                 $categories = $request->categories;
@@ -197,6 +191,8 @@ class PostService
                 ]);
             }
         }
+        $post->images;
+        $post->categories;
         return serviceOk($post);
     }
 
@@ -257,7 +253,7 @@ class PostService
         if (isset($params['filepath'])) {
             $post->image = parse_url($params['filepath'], PHP_URL_PATH);
         } elseif ($request->hasFile('image') || $request->filled('image')) {
-            $is_upload = upload_file($request->file('image'), $post->image, $post->id, 'uploads/blog/post', $request->image);
+            $is_upload = upload_file($request->file('image'), $post->image, $post->id, 'public/uploads/blog/post', $request->image);
             if ($is_upload) {
                 ///Delete previous image
                 if ($post->image) {
@@ -276,7 +272,7 @@ class PostService
         }
 
         if ($request->hasFile('video')) {
-            $is_upload = upload_file($request->file('video'), null, $post->id, 'uploads/blog/post');
+            $is_upload = upload_file($request->file('video'), null, $post->id, 'public/uploads/blog/post');
             if ($is_upload) {
                 ///Delete previous video
                 if ($post->video) {
@@ -301,8 +297,8 @@ class PostService
 
         if (isset($params['delete_images']) && is_array($params['delete_images'])) {
             $blog_images = Image::where([
-                "parent_id" => $post->id,
-                "parent_type" => get_class($post),
+                "userable_id" => $post->id,
+                "userable_type" => get_class($post),
             ])
                 ->whereIn('id', $params['delete_images'])
                 ->get();
@@ -337,28 +333,24 @@ class PostService
 
             $delete_images = Image::whereNotIn('url', $remain_images)
                 ->where([
-                    "parent_id" => $post->id,
-                    "parent_type" => get_class($post),
+                    "imageable_id" => $post->id,
+                    "imageable_type" => get_class($post),
                 ])
                 ->get();
             foreach ($delete_images as $delete_image) {
-                delete_file($delete_image->image);
+                delete_file($delete_image->url);
                 $delete_image->delete();
             }
 
             foreach ($images as $obj) {
                 if (is_string($obj) && (filter_var($obj, FILTER_VALIDATE_URL) === false)) {
 
-                    $is_upload = upload_file($obj, null, $post->id, 'uploads/blog/post', $obj);
+                    $is_upload = upload_file($obj, null, $post->id, 'public/uploads/blog/post', $obj);
                     if ($is_upload) {
 
                         $blog_image = new Image;
-                        $blog_image->userable_id = $params['userable_id'];
-                        $blog_image->userable_type = $params['userable_type'];
-                        $blog_image->parent_id = $post->id;
-                        $blog_image->parent_type = get_class($post);
                         $blog_image->url = $is_upload;
-                        $blog_image->save();
+                        $post->images()->save($blog_image);
                     } else {
 
                         return serviceError('Image Invalid');
@@ -392,6 +384,9 @@ class PostService
                 }
             }
         }
+
+        $post->images;
+        $post->categories;
 
         return serviceOk($post);
     }

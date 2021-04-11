@@ -1,4 +1,5 @@
 <?php
+
 namespace Modules\Blog\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -13,4 +14,8 @@ class Image extends Model
         return $image = make_absolute($image, env('APP_URL'));
     }
 
+    public function imageable()
+    {
+        return $this->morphTo();
+    }
 }

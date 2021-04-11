@@ -16,8 +16,8 @@ class CreateImageTable extends Migration
         Schema::create('blog_image', function (Blueprint $table) {
             $table->Increments('id');
 
-            $table->unsignedInteger('parent_id');
-            $table->string('parent_type');
+            $table->unsignedInteger('imageable_id');
+            $table->string('imageable_type');
             $table->string('url');
             $table->unsignedInteger('user_id');
             $table->string('user_type');

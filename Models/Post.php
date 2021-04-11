@@ -63,6 +63,6 @@ class Post extends Model
 
     public function images()
     {
-        return $this->morphMany('Modules\Blog\Models\Image', 'parent');
+        return $this->morphMany(Image::class, 'imageable');
     }
 }
