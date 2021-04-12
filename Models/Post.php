@@ -65,4 +65,9 @@ class Post extends Model
     {
         return $this->morphMany(Image::class, 'imageable');
     }
+
+    public static function getStatuses()
+    {
+        return ['publish', 'draft'];
+    }
 }

@@ -10,7 +10,7 @@ use Modules\Blog\Models\Image;
 use Modules\Blog\Models\Post;
 use Validator;
 use Illuminate\Support\Str;
-
+use Illuminate\Validation\Rule;
 
 class PostService
 {
@@ -214,10 +214,38 @@ class PostService
         return serviceOk(['post' => $post, 'categories_ids' => $categories_ids]);
     }
 
+    public function updateStatus($params)
+    {
+        $validator = Validator::make($params, [
+            'id' => ['required', 'exists:blog_post,id'],
+            'status' => ['required', Rule::in(Post::getStatuses())]
+        ]);
+
+        if ($validator->fails()) {
+            return serviceError($validator->errors());
+        }
+
+        $post = post::where('id', $params['id'])->when(isset($params['userable_id']), function ($query) use ($params) {
+            $query->where('userable_id', $params['userable_id']);
+        })
+            ->first();
+
+
+        if (!$post) {
+            return serviceError(trans("blog::messages.403"));
+        }
+
+        $post->status = $params["status"];
+        $post->save();
+
+        return serviceOk($post);
+    }
+
     public function update($params, $request)
     {
 
         $validator = Validator::make($params, [
+            'id' => ['required', 'exists:blog_post,id'],
             'title' => 'required',
             'content' => 'required'
         ]);
