@@ -352,16 +352,29 @@ class PostService
                 $images = json_decode($request->images);
             }
 
-            $remain_images = [];
-            foreach ($images as $obj) {
-                if (is_string($obj) && (filter_var($obj, FILTER_VALIDATE_URL) != false)) {
-                    $remain_images[] = parse_url($obj, PHP_URL_PATH);
+            $remain_images = $remain_images_final = [];
+
+            if (!isset($params['remain_images'])) {
+                foreach ($images as $obj) {
+                    if (is_string($obj) && (filter_var($obj, FILTER_VALIDATE_URL) != false)) {
+                        $remain_images[] = $obj;
+                    }
                 }
+            } else {
+                $remain_images = $params["remain_images"];
             }
 
-            
+            foreach ($remain_images as $remain_image) {
+                $remain_image = parse_url($remain_image, PHP_URL_PATH);
+                if ($remain_image[0] == "/") {
+                    $remain_image = substr($remain_image, 1);
+                }
+                $remain_images_final[] = $remain_image;
+            }
 
-            $delete_images = Image::whereNotIn('url', $remain_images)
+
+
+            $delete_images = Image::whereNotIn('url', $remain_images_final)
                 ->where([
                     "imageable_id" => $post->id,
                     "imageable_type" => get_class($post),
