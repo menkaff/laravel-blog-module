@@ -127,7 +127,7 @@ class PostService
         if (isset($params['filepath'])) {
             $post->image = parse_url($params['filepath'], PHP_URL_PATH);
         } elseif ($request->hasFile('image') || $request->filled('image')) {
-            $is_upload = upload_file($request->file('image'), null, $post->id, 'public/uploads/blog/post', $request->image);
+            $is_upload = upload_file($request->file('image'), null, $post->id, 'uploads/blog/post', $request->image);
             if ($is_upload) {
                 $post->image = $is_upload;
             } else {
@@ -136,7 +136,7 @@ class PostService
         }
 
         if ($request->hasFile('video')) {
-            $is_upload = upload_file($request->file('video'), null, $post->id, 'public/uploads/blog/post');
+            $is_upload = upload_file($request->file('video'), null, $post->id, 'uploads/blog/post');
             if ($is_upload) {
                 $post->video = $is_upload;
             } else {
@@ -153,7 +153,7 @@ class PostService
 
         $post->save();
 
-        if ($request->filled("images")) {
+        if (is_array($params["images"])) {
 
             $images = [];
             if (is_array($request->images)) {
@@ -164,7 +164,7 @@ class PostService
 
             foreach ($images as $image) {
 
-                $is_upload = upload_file($image, null, $post->id, 'public/uploads/blog/post', $image);
+                $is_upload = upload_file($image, null, $post->id, 'uploads/blog/post', $image);
                 if ($is_upload) {
 
                     $blog_image = new Image;
@@ -281,7 +281,7 @@ class PostService
         if (isset($params['filepath'])) {
             $post->image = parse_url($params['filepath'], PHP_URL_PATH);
         } elseif ($request->hasFile('image') || $request->filled('image')) {
-            $is_upload = upload_file($request->file('image'), $post->image, $post->id, 'public/uploads/blog/post', $request->image);
+            $is_upload = upload_file($request->file('image'), $post->image, $post->id, 'uploads/blog/post', $request->image);
             if ($is_upload) {
                 ///Delete previous image
                 if ($post->image) {
@@ -300,7 +300,7 @@ class PostService
         }
 
         if ($request->hasFile('video')) {
-            $is_upload = upload_file($request->file('video'), null, $post->id, 'public/uploads/blog/post');
+            $is_upload = upload_file($request->file('video'), null, $post->id, 'uploads/blog/post');
             if ($is_upload) {
                 ///Delete previous video
                 if ($post->video) {
@@ -343,10 +343,10 @@ class PostService
             }
         }
 
-        if ($request->filled("images")) {
+        if (is_array($params["images"])) {
 
             $images = [];
-            if (is_array($request->images)) {
+            if (is_array($params["images"])) {
                 $images = $request->images;
             } else {
                 $images = json_decode($request->images);
@@ -358,6 +358,8 @@ class PostService
                     $remain_images[] = parse_url($obj, PHP_URL_PATH);
                 }
             }
+
+            
 
             $delete_images = Image::whereNotIn('url', $remain_images)
                 ->where([
@@ -371,9 +373,9 @@ class PostService
             }
 
             foreach ($images as $obj) {
-                if (is_string($obj) && (filter_var($obj, FILTER_VALIDATE_URL) === false)) {
+                if (filter_var($obj, FILTER_VALIDATE_URL) === false) {
 
-                    $is_upload = upload_file($obj, null, $post->id, 'public/uploads/blog/post', $obj);
+                    $is_upload = upload_file($obj, null, $post->id, 'uploads/blog/post', $obj);
                     if ($is_upload) {
 
                         $blog_image = new Image;
